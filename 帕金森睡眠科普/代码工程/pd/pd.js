@@ -145,7 +145,8 @@ PD.subtitle = (c, t) => {
 };
 
 // 小号说明字（屏幕空间，底部）
-PD.note = (c, text, y = 1530) => { c.save(); c.font = '30px "PuHui-Bold"'; c.fillStyle = 'rgba(94,107,114,.95)'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, W / 2, y); c.restore(); };
+PD.note = (c, text, y = 1240) => { c.save(); c.font = '38px "PuHui-Bold"'; c.textAlign = 'center'; c.textBaseline = 'middle'; const w = c.measureText(text).width;
+  c.fillStyle = 'rgba(255,255,255,.95)'; c.beginPath(); c.roundRect(W / 2 - w / 2 - 28, y - 38, w + 56, 76, 14); c.fill(); c.fillStyle = C.ink; c.fillText(text, W / 2, y + 2); c.restore(); };
 
 // ---------- 一个「折页镜头」：桌面＋纸＋笔画＋笔＋标签 ----------
 // spec: { img:'pd/page1.png', cam:[...], strokes:[...], over(c,V,t) }

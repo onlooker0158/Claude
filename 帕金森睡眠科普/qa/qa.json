@@ -1,0 +1,679 @@
+{
+ "project": "/home/user/Claude/帕金森睡眠科普/代码工程",
+ "spec": null,
+ "segments": [
+  {
+   "id": "p01",
+   "window_lt": [
+    0.0,
+    3.63
+   ],
+   "frames": 108,
+   "ms_mean": 15.6,
+   "ms_max": 71.9,
+   "ms_cold": 10.3,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 5.01,
+   "motion_max": 55.54,
+   "still_pairs_pct": 50.5,
+   "spike_ratio": 1110.7,
+   "spikes_at_lt": [
+    0.373
+   ],
+   "camera_events_lt": [
+    [
+     0.441,
+     0.712
+    ],
+    [
+     2.612,
+     2.884
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 97
+  },
+  {
+   "id": "p02",
+   "window_lt": [
+    0.35,
+    3.88
+   ],
+   "frames": 105,
+   "ms_mean": 11.5,
+   "ms_max": 25.4,
+   "ms_cold": 13.3,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.15,
+   "motion_max": 34.83,
+   "still_pairs_pct": 54.8,
+   "spike_ratio": 696.5,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     2.353,
+     2.658
+    ],
+    [
+     2.726,
+     2.964
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 105
+  },
+  {
+   "id": "p03",
+   "window_lt": [
+    0.35,
+    2.03
+   ],
+   "frames": 50,
+   "ms_mean": 10.3,
+   "ms_max": 19.5,
+   "ms_cold": 10.3,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 0.33,
+   "motion_max": 4.5,
+   "still_pairs_pct": 65.3,
+   "spike_ratio": 90.1,
+   "spikes_at_lt": [
+    0.967
+   ],
+   "camera_events_lt": [],
+   "framing": [],
+   "text_tracked": 98
+  },
+  {
+   "id": "p04",
+   "window_lt": [
+    0.35,
+    4.38
+   ],
+   "frames": 120,
+   "ms_mean": 11.4,
+   "ms_max": 32.9,
+   "ms_cold": 13.4,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.52,
+   "motion_max": 43.27,
+   "still_pairs_pct": 74.8,
+   "spike_ratio": 865.3,
+   "spikes_at_lt": [
+    0.756,
+    0.79,
+    0.824,
+    0.858,
+    1.061
+   ],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.689
+    ],
+    [
+     3.161,
+     3.432
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 228
+  },
+  {
+   "id": "p05",
+   "window_lt": [
+    0.35,
+    3.18
+   ],
+   "frames": 84,
+   "ms_mean": 37.8,
+   "ms_max": 68.6,
+   "ms_cold": 114.1,
+   "deterministic": false,
+   "det_maxdiff": 1,
+   "motion_pct": 2.67,
+   "motion_max": 33.94,
+   "still_pairs_pct": 54.2,
+   "spike_ratio": 678.7,
+   "spikes_at_lt": [
+    1.884
+   ],
+   "camera_events_lt": [
+    [
+     1.987,
+     2.328
+    ],
+    [
+     2.532,
+     2.737
+    ],
+    [
+     2.907,
+     3.18
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 84
+  },
+  {
+   "id": "p06",
+   "window_lt": [
+    0.35,
+    4.85
+   ],
+   "frames": 135,
+   "ms_mean": 19.9,
+   "ms_max": 47.2,
+   "ms_cold": 21.4,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 3.36,
+   "motion_max": 44.25,
+   "still_pairs_pct": 65.7,
+   "spike_ratio": 885.0,
+   "spikes_at_lt": [
+    0.417,
+    0.686,
+    0.719,
+    0.753,
+    0.787,
+    0.82,
+    2.029,
+    2.063,
+    2.096,
+    2.13,
+    2.163,
+    2.902
+   ],
+   "camera_events_lt": [
+    [
+     1.66,
+     1.928
+    ],
+    [
+     3.238,
+     3.44
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 135
+  },
+  {
+   "id": "p07",
+   "window_lt": [
+    0.35,
+    5.05
+   ],
+   "frames": 141,
+   "ms_mean": 22.1,
+   "ms_max": 35.1,
+   "ms_cold": 51.7,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.48,
+   "motion_max": 23.78,
+   "still_pairs_pct": 0.0,
+   "spike_ratio": 113.7,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     2.599,
+     2.868
+    ],
+    [
+     4.244,
+     4.479
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "18:00",
+     "lt": [
+      0.35,
+      2.7
+     ],
+     "t": [
+      22.42,
+      24.77
+     ]
+    },
+    {
+     "kind": "半截字",
+     "text": "22:00、曲线为概念示意，不代表任何药物的实测数据",
+     "lt": [
+      4.41,
+      5.05
+     ],
+     "t": [
+      26.48,
+      27.12
+     ]
+    }
+   ],
+   "text_tracked": 1342
+  },
+  {
+   "id": "p08",
+   "window_lt": [
+    0.35,
+    5.2
+   ],
+   "frames": 145,
+   "ms_mean": 23.0,
+   "ms_max": 36.4,
+   "ms_cold": 25.4,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.19,
+   "motion_max": 19.68,
+   "still_pairs_pct": 47.9,
+   "spike_ratio": 177.7,
+   "spikes_at_lt": [
+    4.324
+   ],
+   "camera_events_lt": [
+    [
+     1.192,
+     1.428
+    ],
+    [
+     3.482,
+     3.718
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "22:00、曲线为概念示意，不代表任何药物的实测数据、夜间 22:00 – 07:00",
+     "lt": [
+      0.35,
+      3.52
+     ],
+     "t": [
+      27.49,
+      30.66
+     ]
+    },
+    {
+     "kind": "半截字",
+     "text": "曲线为概念示意，不代表任何药物的实测数据",
+     "lt": [
+      3.58,
+      5.2
+     ],
+     "t": [
+      30.72,
+      32.34
+     ]
+    }
+   ],
+   "text_tracked": 1614
+  },
+  {
+   "id": "p09",
+   "window_lt": [
+    0.35,
+    3.62
+   ],
+   "frames": 98,
+   "ms_mean": 24.0,
+   "ms_max": 37.2,
+   "ms_cold": 23.3,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.5,
+   "motion_max": 34.09,
+   "still_pairs_pct": 87.6,
+   "spike_ratio": 681.7,
+   "spikes_at_lt": [
+    1.26
+   ],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.417
+    ],
+    [
+     2.71,
+     2.979
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "18:00",
+     "lt": [
+      0.35,
+      3.62
+     ],
+     "t": [
+      32.71,
+      35.98
+     ]
+    }
+   ],
+   "text_tracked": 988
+  },
+  {
+   "id": "p10",
+   "window_lt": [
+    0.35,
+    3.35
+   ],
+   "frames": 89,
+   "ms_mean": 25.5,
+   "ms_max": 38.3,
+   "ms_cold": 25.4,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 0.36,
+   "motion_max": 4.66,
+   "still_pairs_pct": 11.4,
+   "spike_ratio": 23.4,
+   "spikes_at_lt": [
+    0.861,
+    0.895,
+    0.93
+   ],
+   "camera_events_lt": [],
+   "framing": [],
+   "text_tracked": 964
+  },
+  {
+   "id": "p11",
+   "window_lt": [
+    0.35,
+    3.21
+   ],
+   "frames": 85,
+   "ms_mean": 10.1,
+   "ms_max": 19.4,
+   "ms_cold": 13.3,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 4.23,
+   "motion_max": 38.76,
+   "still_pairs_pct": 40.5,
+   "spike_ratio": 159.5,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.486
+    ],
+    [
+     2.155,
+     2.393
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 85
+  },
+  {
+   "id": "p12",
+   "window_lt": [
+    0.35,
+    3.28
+   ],
+   "frames": 87,
+   "ms_mean": 10.7,
+   "ms_max": 18.1,
+   "ms_cold": 9.5,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.58,
+   "motion_max": 41.88,
+   "still_pairs_pct": 66.3,
+   "spike_ratio": 837.6,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     1.679,
+     1.917
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 87
+  },
+  {
+   "id": "p13",
+   "window_lt": [
+    0.35,
+    4.45
+   ],
+   "frames": 122,
+   "ms_mean": 10.3,
+   "ms_max": 20.1,
+   "ms_cold": 11.2,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.21,
+   "motion_max": 34.32,
+   "still_pairs_pct": 55.4,
+   "spike_ratio": 686.4,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     1.536,
+     1.705
+    ],
+    [
+     1.773,
+     2.078
+    ],
+    [
+     3.061,
+     3.366
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 246
+  },
+  {
+   "id": "p14",
+   "window_lt": [
+    0.35,
+    4.09
+   ],
+   "frames": 112,
+   "ms_mean": 40.0,
+   "ms_max": 94.5,
+   "ms_cold": 77.1,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 3.25,
+   "motion_max": 49.3,
+   "still_pairs_pct": 15.3,
+   "spike_ratio": 52.6,
+   "spikes_at_lt": [
+    0.384
+   ],
+   "camera_events_lt": [
+    [
+     1.428,
+     1.698
+    ],
+    [
+     2.068,
+     2.304
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 171
+  },
+  {
+   "id": "p15",
+   "window_lt": [
+    0.35,
+    4.07
+   ],
+   "frames": 111,
+   "ms_mean": 11.9,
+   "ms_max": 27.3,
+   "ms_cold": 12.5,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 5.26,
+   "motion_max": 54.25,
+   "still_pairs_pct": 64.5,
+   "spike_ratio": 1085.0,
+   "spikes_at_lt": [
+    0.654,
+    0.688,
+    0.722,
+    0.756,
+    0.79,
+    0.823,
+    0.857,
+    0.891,
+    0.925,
+    0.959,
+    0.993,
+    1.026,
+    1.06,
+    1.094,
+    1.128,
+    1.635
+   ],
+   "camera_events_lt": [
+    [
+     2.886,
+     3.157
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 143
+  },
+  {
+   "id": "p16",
+   "window_lt": [
+    0.35,
+    5.85
+   ],
+   "frames": 165,
+   "ms_mean": 15.3,
+   "ms_max": 46.4,
+   "ms_cold": 17,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.67,
+   "motion_max": 45.2,
+   "still_pairs_pct": 76.2,
+   "spike_ratio": 903.9,
+   "spikes_at_lt": [
+    0.484,
+    0.518,
+    0.551,
+    0.585,
+    0.618,
+    0.652,
+    0.685,
+    0.719,
+    0.752,
+    0.786,
+    0.82,
+    0.853,
+    1.289,
+    1.323,
+    1.356,
+    1.39,
+    4.441
+   ],
+   "camera_events_lt": [
+    [
+     1.021,
+     1.255
+    ],
+    [
+     2.396,
+     2.63
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 360
+  }
+ ],
+ "transitions": [
+  {
+   "id": "p02",
+   "type": "cut",
+   "ms_max": 43.4
+  },
+  {
+   "id": "p03",
+   "type": "cut",
+   "ms_max": 64.8
+  },
+  {
+   "id": "p04",
+   "type": "cut",
+   "ms_max": 45.1
+  },
+  {
+   "id": "p05",
+   "type": "cut",
+   "ms_max": 63.1
+  },
+  {
+   "id": "p06",
+   "type": "cut",
+   "ms_max": 44.6
+  },
+  {
+   "id": "p07",
+   "type": "cut",
+   "ms_max": 48.6
+  },
+  {
+   "id": "p08",
+   "type": "cut",
+   "ms_max": 32
+  },
+  {
+   "id": "p09",
+   "type": "cut",
+   "ms_max": 37
+  },
+  {
+   "id": "p10",
+   "type": "cut",
+   "ms_max": 36.1
+  },
+  {
+   "id": "p11",
+   "type": "cut",
+   "ms_max": 46.1
+  },
+  {
+   "id": "p12",
+   "type": "cut",
+   "ms_max": 33.5
+  },
+  {
+   "id": "p13",
+   "type": "cut",
+   "ms_max": 67.7
+  },
+  {
+   "id": "p14",
+   "type": "cut",
+   "ms_max": 89.5
+  },
+  {
+   "id": "p15",
+   "type": "cut",
+   "ms_max": 77
+  },
+  {
+   "id": "p16",
+   "type": "cut",
+   "ms_max": 41.3
+  }
+ ],
+ "page_errors": []
+}

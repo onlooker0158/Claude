@@ -34,8 +34,8 @@ function card() {                                              // 静态底：�
   g.font = '32px "PuHui-Bold"'; g.fillStyle = C.sub; ['18:00', '22:00', '2:00', '6:00', '10:00'].forEach((s, i) => g.fillText(s, X(18 + i * 4), 1330));
   // 控制线
   g.setLineDash([22, 16]); g.strokeStyle = C.ac; g.lineWidth = 6; g.beginPath(); g.moveTo(110, YC); g.lineTo(970, YC); g.stroke(); g.setLineDash([]);
-  g.font = '34px "PuHui-Black"'; g.fillStyle = C.ac; g.textAlign = 'right'; g.fillText('症状控制线', 960, YC - 18);
-  g.font = '28px "PuHui-Bold"'; g.fillStyle = C.sub; g.textAlign = 'center'; g.fillText('曲线为概念示意，不代表任何药物的实测数据', 540, 1590);
+  g.font = '34px "PuHui-Black"'; g.fillStyle = C.ac; g.textAlign = 'left'; g.fillText('症状控制线', X(20), YC - 18);
+  g.font = '28px "PuHui-Bold"'; g.fillStyle = C.sub; g.textAlign = 'center'; g.fillText('曲线为概念示意，不代表任何药物的实测数据', 540, 718);
   return cardCv;
 }
 function curvePath(c, h0, h1) { c.beginPath(); for (let h = h0; h <= h1 + 1e-6; h += 0.05) { const x = X(h), y = Y(conc(h)); h === h0 ? c.moveTo(x, y) : c.lineTo(x, y); } }
@@ -45,8 +45,8 @@ function headAt(t) {
   if (t < 22.2) return 20.6;
   if (t < 27.0) return lerp(20.6, 27.0, (t - 22.2) / 4.8);
   if (t < 28.4) return lerp(27.0, 30.4, (t - 27.0) / 1.4);       // 后半夜加速往下滑，28.4 落进谷底
-  if (t < 31.0) return 30.4;
-  return Math.min(34, lerp(30.4, 34, (t - 31.0) / 0.9));
+  if (t < 33.0) return 30.4;
+  return Math.min(34, lerp(30.4, 34, (t - 33.0) / 0.9));
 }
 const greenAt = t => t < 33.85 ? 18 : Math.min(34, lerp(18, 34, (t - 33.85) / 1.5));
 
@@ -72,27 +72,30 @@ function draw(c, t, cam) {
   });
   // 标签（钉在世界坐标上）
   const L = (wx, wy, text, at, o) => PD.label(c, V, wx / W, wy / H, text, t, at, o);
-  if (t < 33.6) PD.hand(c, V, X(26) / W, 960 / H, '后半夜', t, 24.70, { size: 84, r: -0.04 });
-  if (t < 33.6) { L(X(29.6), Y(conc(30.4)) + 120, '清晨谷底', 28.40, { size: 88 }); L(X(25.4), Y(conc(30.4)) - 40, '翻身难', 29.25, { size: 60, bg: C.ac, r: 0.03 }); L(X(25.6), Y(conc(30.4)) + 60, '早上僵硬', 30.70, { size: 60, bg: C.ac, r: -0.02 }); }
-  L(X(24), YS - 90, '全夜平稳', 35.15, { size: 80, bg: C.ac2 });
-  L(X(30), YS + 100, '24小时持续', 36.83, { size: 76 });
+  if (t < 29.2) PD.hand(c, V, X(26) / W, 960 / H, '后半夜', t, 24.70, { size: 84, r: -0.04 });
+  if (t < 33.6) { L(590, 1225, '清晨谷底', 28.40, { size: 80 }); if (t < 32.6) L(900, 1106, '翻身难', 29.25, { size: 52, bg: C.ac, r: 0.03 }); if (t < 32.6) L(910, 1192, '早上僵硬', 30.70, { size: 52, bg: C.ac, r: -0.02 }); }
+  L(X(22.5), YS - 90, '全夜平稳', 35.15, { size: 80, bg: C.ac2 });
+  L(X(31), YS - 90, '和医生商量', 36.83, { size: 76 });
   PD.subtitle(c, t);
 }
 const shot = track => ({ draw(c, lt, t) { draw(c, t, PD.camAt(track, t)); } });
 SCENES.p07 = shot([
-  [0, { u: 0.40, v: 0.42, vw: 0.80 }],
+  [0, { u: 0.50, v: 0.42, vw: 0.82 }],
   [24.65, { u: 0.56, v: 0.50, vw: 0.72 }, 0.30],
+  [26.30, { u: 0.62, v: 0.55, vw: 0.60 }, 0.28],
 ]);
 SCENES.p08 = shot([
-  [0, { u: 0.56, v: 0.50, vw: 0.72 }],
+  [0, { u: 0.62, v: 0.55, vw: 0.60 }],
   [28.35, { u: 0.66, v: 0.58, vw: 0.56 }, 0.2, k => k >= 1 ? 1 : k < .6 ? k / .6 * 1.07 : 1.07 - .07 * (k - .6) / .4],
+  [30.60, { u: 0.66, v: 0.56, vw: 0.62 }, 0.28],
 ]);
 SCENES.p09 = shot([
-  [0, { u: 0.55, v: 0.50, vw: 0.86 }],
+  [0, { u: 0.66, v: 0.56, vw: 0.62 }],
   [32.50, { u: 0.52, v: 0.52, vw: 0.78 }, 0.28],
+  [35.05, { u: 0.42, v: 0.48, vw: 0.62 }, 0.28],
 ]);
 SCENES.p10 = shot([
-  [0, { u: 0.52, v: 0.52, vw: 0.78 }],
+  [0, { u: 0.42, v: 0.48, vw: 0.62 }],
   [36.02, { u: 0.50, v: 0.40, vw: 1.0 }, 0.30],
 ]);
 })();
