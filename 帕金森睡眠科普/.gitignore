@@ -1,0 +1,6 @@
+# 引擎是从 .claude/skills/huashu-art-motion/scripts/engine 复制来的，只提交本片自己的代码
+代码工程/*
+!代码工程/eras.js
+!代码工程/pd/
+渲染/
+音频/句/
