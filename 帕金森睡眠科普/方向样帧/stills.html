@@ -1,0 +1,133 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:NS;src:url(../../.claude/skills/huashu-art-motion/scripts/engine/lib/fonts/NotoSansSC-900.woff);font-weight:900}
+@font-face{font-family:NS;src:url(../../.claude/skills/huashu-art-motion/scripts/engine/lib/fonts/NotoSansSC-700.woff);font-weight:700}
+@font-face{font-family:WK;src:url(../../.claude/skills/huashu-art-motion/scripts/engine/lib/fonts/LXGWWenKai-500.woff)}
+html,body{margin:0;background:#000}canvas{display:block}
+</style></head><body><canvas id=c width=1080 height=1920></canvas>
+<script>
+const c=document.getElementById('c'),g=c.getContext('2d'),W=1080,H=1920;
+const which=new URLSearchParams(location.search).get('d')||'A';
+let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+function rr(x,y,w,h,r){g.beginPath();g.roundRect(x,y,w,h,r)}
+function grain(a){const id=g.getImageData(0,0,W,H),d=id.data;for(let i=0;i<d.length;i+=4){const n=(rnd()-.5)*a;d[i]+=n;d[i+1]+=n;d[i+2]+=n}g.putImageData(id,0,0)}
+function txt(s,x,y,size,col,font='NS',w=900,align='center'){g.font=`${w} ${size}px ${font}`;g.fillStyle=col;g.textAlign=align;g.textBaseline='alphabetic';g.fillText(s,x,y)}
+function load(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=src})}
+
+// ---------- A 床头暖灯：暖木纸艺，俯拍床头柜特写 ----------
+function A(){
+  const P={bg:'#EDE3D1',sf:'#F7F1E6',ink:'#2B2622',sub:'#7A6E62',ac:'#C4552D',ac2:'#3F5B4B',wood:'#B98A5E',dk:'#3A2F27'};
+  g.fillStyle=P.dk;g.fillRect(0,0,W,H);
+  // 台灯光池
+  const lg=g.createRadialGradient(700,620,40,700,700,900);lg.addColorStop(0,'#F6D9A8');lg.addColorStop(.55,'#C99A64');lg.addColorStop(1,'#3A2F27');
+  g.fillStyle=lg;g.fillRect(0,0,W,H);
+  // 木纹桌面
+  g.globalAlpha=.10;g.strokeStyle='#5A4030';g.lineWidth=3;
+  for(let y=0;y<H;y+=46){g.beginPath();g.moveTo(0,y);for(let x=0;x<=W;x+=40)g.lineTo(x,y+Math.sin(x/170+y)*9);g.stroke()}
+  g.globalAlpha=1;
+  // 闹钟（大，占上半）
+  g.save();g.translate(520,640);g.rotate(-.06);
+  g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(26,40,330,330,0,0,7);g.fill();
+  g.fillStyle=P.ac;g.beginPath();g.arc(0,0,330,0,7);g.fill();
+  g.fillStyle=P.sf;g.beginPath();g.arc(0,0,280,0,7);g.fill();
+  for(let i=0;i<12;i++){const a=i/12*Math.PI*2;g.fillStyle=P.ink;g.save();g.rotate(a);g.fillRect(-5,-262,10,i%3?26:46);g.restore()}
+  g.strokeStyle=P.ink;g.lineCap='round';
+  g.lineWidth=22;g.beginPath();g.moveTo(0,0);g.lineTo(Math.sin(2/12*Math.PI*2)*150,-Math.cos(2/12*Math.PI*2)*150);g.stroke();
+  g.lineWidth=12;g.beginPath();g.moveTo(0,0);g.lineTo(0,-230);g.stroke();
+  g.fillStyle=P.ac;g.beginPath();g.arc(0,0,20,0,7);g.fill();
+  g.restore();
+  // 水杯
+  g.fillStyle='rgba(0,0,0,.22)';g.beginPath();g.ellipse(935,250,120,120,0,0,7);g.fill();
+  g.fillStyle='rgba(247,241,230,.55)';g.beginPath();g.arc(920,230,115,0,7);g.fill();
+  g.fillStyle='rgba(63,91,75,.35)';g.beginPath();g.arc(920,230,92,0,7);g.fill();
+  g.strokeStyle='rgba(255,255,255,.7)';g.lineWidth=8;g.beginPath();g.arc(920,230,100,3.6,4.6);g.stroke();
+  // 便签（手写）
+  g.save();g.translate(330,1360);g.rotate(.05);
+  g.fillStyle='rgba(0,0,0,.25)';g.fillRect(14,18,560,420);
+  g.fillStyle='#F4E3A1';g.fillRect(0,0,560,420);
+  g.fillStyle='rgba(196,85,45,.55)';g.fillRect(200,-22,150,48);
+  txt('凌晨2点',40,110,64,P.ink,'WK',500,'left');
+  txt('翻身翻不动',40,210,74,P.ac,'WK',500,'left');
+  txt('小腿抽筋，疼醒',40,310,56,P.ink,'WK',500,'left');
+  g.restore();
+  // 一只手（只出手）—— 简化剪纸手 拿笔
+  g.save();g.translate(860,1600);g.rotate(-.5);
+  g.fillStyle='#D9A982';rr(-70,-40,260,150,70);g.fill();
+  g.fillStyle='#2B2622';g.fillRect(-260,10,260,22);g.fillStyle=P.ac;g.fillRect(-270,10,30,22);
+  g.fillStyle='#C99372';rr(-110,-10,120,60,30);g.fill();
+  g.fillStyle='#E8E0D2';rr(150,-60,180,190,20);g.fill();
+  g.restore();
+  // 标题落在物上：闹钟下方的纸条
+  g.save();g.translate(540,1150);g.rotate(-.02);
+  g.fillStyle=P.ink;g.fillRect(-330,-90,660,130);
+  txt('夜里，睡得好吗？',0,10,80,P.sf);
+  g.restore();
+  grain(18);
+}
+
+// ---------- B 一夜的水位：深墨夜色图解，横贯画面的一夜曲线 ----------
+function B(){
+  const P={bg:'#121417',sf:'#1E2226',ink:'#F2EFE8',sub:'#A39E93',ac:'#F2B33D',ac2:'#5FB3A1'};
+  g.fillStyle=P.bg;g.fillRect(0,0,W,H);
+  // 窗：大，上半
+  g.fillStyle=P.sf;rr(90,170,900,700,24);g.fill();
+  g.strokeStyle='#2C3238';g.lineWidth=18;g.strokeRect(90,170,900,700);g.beginPath();g.moveTo(540,170);g.lineTo(540,870);g.moveTo(90,520);g.lineTo(990,520);g.stroke();
+  // 月亮沿弧线
+  g.setLineDash([6,14]);g.strokeStyle='rgba(242,179,61,.35)';g.lineWidth=4;g.beginPath();g.arc(540,1000,620,Math.PI*1.15,Math.PI*1.85);g.stroke();g.setLineDash([]);
+  g.fillStyle=P.ac;g.beginPath();g.arc(760,430,78,0,7);g.fill();g.fillStyle=P.sf;g.beginPath();g.arc(735,410,70,0,7);g.fill();
+  for(let i=0;i<26;i++){g.fillStyle=`rgba(242,239,232,${.2+rnd()*.5})`;g.beginPath();g.arc(110+rnd()*860,190+rnd()*660,1.5+rnd()*2.5,0,7);g.fill()}
+  // 曲线区
+  const X=t=>110+(t-18)/16*860, Y0=1500;
+  g.strokeStyle='#2C3238';g.lineWidth=3;g.beginPath();g.moveTo(90,Y0+120);g.lineTo(990,Y0+120);g.stroke();
+  g.fillStyle='rgba(242,179,61,.08)';g.fillRect(X(22),1000,X(31)-X(22),620);
+  txt('夜间 22:00 — 07:00',(X(22)+X(31))/2,1050,36,P.sub,'NS',700);
+  ['18:00','22:00','2:00','6:00','10:00'].forEach((s,i)=>txt(s,X(18+i*4),Y0+175,34,P.sub,'NS',700));
+  // 控制线
+  g.setLineDash([18,14]);g.strokeStyle=P.ac;g.lineWidth=5;g.beginPath();g.moveTo(90,1300);g.lineTo(990,1300);g.stroke();g.setLineDash([]);
+  txt('症状控制线',980,1280,34,P.ac,'NS',700,'right');
+  // 间断口服：下滑到谷底
+  g.strokeStyle='#8E8A82';g.lineWidth=12;g.lineCap='round';g.beginPath();
+  for(let t=18;t<=34;t+=.1){let v; if(t<19)v=1300-(t-18)*260; else if(t<30.5)v=1040+ (1-Math.exp(-(t-19)/3.2))*560; else v=1600-(t-30.5)*400; const y=Math.min(1600,Math.max(1040,v)); t==18?g.moveTo(X(t),y):g.lineTo(X(t),y)}g.stroke();
+  // 谷底标记 砸入的字落在曲线上
+  g.fillStyle=P.ac;g.beginPath();g.arc(X(30.2),1598,22,0,7);g.fill();
+  txt('清晨谷底',X(27.6),1560,64,P.ink);
+  // 持续给药线
+  g.strokeStyle=P.ac2;g.lineWidth=12;g.beginPath();for(let t=18;t<=34;t+=.1){const y=1240+Math.sin(t*2)*6;t==18?g.moveTo(X(t),y):g.lineTo(X(t),y)}g.stroke();
+  // 床剪影（物）
+  g.fillStyle='#2C3238';rr(200,780,680,90,16);g.fill();rr(200,700,120,170,16);g.fill();
+  g.fillStyle='#3A4148';rr(330,730,240,60,30);g.fill();
+  txt('药效“掉进谷底”',540,980,76,P.ink);
+  txt('曲线为概念示意',540,1860,28,P.sub,'NS',700);
+  grain(10);
+}
+
+// ---------- C 折页满幅：真实折页当主画面，镜头推近 + 手写打勾 ----------
+async function C(){
+  const P={bg:'#E9EEF0',ac:'#E8731C',ink:'#1F2A30'};
+  const im=await load('../素材/封面面板.png');
+  g.fillStyle=P.bg;g.fillRect(0,0,W,H);
+  // 推近到勾选清单：折页面板宽 1218 → 放大铺满
+  const z=1.55, iw=im.width*z*W/im.width*1.0;
+  const s=W/im.width*z; const fx=.40, fy=.60;
+  const dw=im.width*s, dh=im.height*s;
+  g.save();g.translate(W/2,H/2);g.rotate(-.025);
+  g.fillStyle='rgba(0,0,0,.25)';g.fillRect(-dw*fx+18,-dh*fy+24,dw,dh);
+  g.drawImage(im,-dw*fx,-dh*fy,dw,dh);
+  g.restore();
+  // 手写橙色圈 + 勾
+  g.strokeStyle=P.ac;g.lineWidth=14;g.lineCap='round';g.lineJoin='round';
+  g.beginPath();g.ellipse(600,600,560,85,-.025,0,6.6);g.stroke();
+  g.lineWidth=20;g.beginPath();g.moveTo(92,600);g.lineTo(132,645);g.lineTo(205,525);g.stroke();
+  // 黑底撕边标签
+  g.save();g.translate(80,1460);g.rotate(-.03);g.fillStyle='#111';
+  g.beginPath();g.moveTo(0,0);for(let x=0;x<=900;x+=30)g.lineTo(x,(x/30)%2?8:-4);for(let x=900;x>=0;x-=30)g.lineTo(x,200+((x/30)%2?6:-6));g.closePath();g.fill();
+  txt('60–90% 的患者',40,95,84,'#FFFFFF','NS',900,'left');
+  txt('伴有睡眠问题',40,175,60,'#F2C14E','NS',900,'left');
+  g.restore();
+  grain(8);
+}
+document.fonts.load('900 40px NS').then(()=>document.fonts.load('40px WK')).then(()=>document.fonts.load('700 40px NS')).then(async()=>{
+  if(which==='A')A();else if(which==='B')B();else await C();
+  document.title='done';
+});
+</script></body></html>
