@@ -17,7 +17,7 @@ PR.mantou = (K, x, y, s, at, o = {}) => {
   K.ln(sc([[-26, -112], [-10, -92], [8, -86]], x, y, s), at + 0.45, 0.15, { w: 5 * s, seed: 21, off: o.off });
   K.ln(sc([[26, -110], [12, -90]], x, y, s), at + 0.55, 0.12, { w: 5 * s, seed: 22, off: o.off });
   (o.bites || []).forEach((bt, i) => {
-    const bx = x + (110 - i * 52) * s, by = y - (78 + i * 22) * s, r = 52 * s;
+    const bx = x + (95 - i * 40) * s, by = y - (100 + i * 14) * s, r = 46 * s;
     K.hole(bx, by, r, bt, { dur: 0.08 });
     if (K.now() >= bt + 0.06) K.ln(K.ell(bx, by, r, r, Math.PI * 0.45 + i * 0.2, Math.PI * 1.25 + i * 0.2, 12), bt + 0.06, 0.1, { w: 5 * s, seed: 30 + i, off: o.off });
   });
@@ -122,6 +122,18 @@ PR.lamp = (K, x, y, s, at, litAt, o = {}) => {
     K.ln(sc(f, x, y, s), litAt, 0, { w: 5, col: C.yel, seed: 234, nopen: true });
     for (let i = 0; i < 8; i++) { const a = -Math.PI / 2 + (i - 3.5) * 0.32; K.ln([[x + Math.cos(a) * 190 * s, y - 180 * s + Math.sin(a) * 190 * s], [x + Math.cos(a) * 240 * s, y - 180 * s + Math.sin(a) * 240 * s]], litAt + 0.15 + i * 0.03, 0.1, { w: 4, col: C.yel, a: 0.6, seed: 240 + i, nopen: true }); }
   }
+};
+// 指南针：中心 (cx,cy)，针指向 ang
+PR.compass = (K, cx, cy, r, at, ang, o = {}) => {
+  K.ln(K.ell(cx, cy, r, r, -1.6, -1.6 + Math.PI * 2.03), at, 0.4, { w: 7, seed: o.seed ?? 260 });
+  K.ln(K.ell(cx, cy, r * 0.82, r * 0.82), at + 0.3, 0.2, { w: 3, col: C.sub, seed: (o.seed ?? 260) + 1, nopen: true });
+  for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, l = i % 2 ? 0.1 : 0.2; K.ln([[cx + Math.cos(a) * r * (0.82 - l), cy + Math.sin(a) * r * (0.82 - l)], [cx + Math.cos(a) * r * 0.82, cy + Math.sin(a) * r * 0.82]], at + 0.4, 0.05, { w: 4, seed: (o.seed ?? 260) + 2 + i, nopen: true }); }
+  K.txt('N', cx, cy - r - 30, at + 0.4, { size: 40, col: C.sub, instant: true, font: '"CMU-rm"' });
+  if (K.now() < at + 0.5) return;
+  const c = Math.cos(ang), s = Math.sin(ang), px = -s, py = c, L = r * 0.72, wd = r * 0.13;
+  const tip = [cx + c * L, cy + s * L], tail = [cx - c * L, cy - s * L], l = [cx + px * wd, cy + py * wd], rr = [cx - px * wd, cy - py * wd];
+  K.fill([tip, l, rr], at + 0.5, { col: C.red, a: 0.9 }); K.ln([tip, l, tail, rr, tip], at + 0.5, 0, { w: 4, seed: (o.seed ?? 260) + 12, nopen: true, amp: 0.3 });
+  K.fill(K.ell(cx, cy, 8, 8), at + 0.5, { col: C.ink });
 };
 // 靶子
 PR.target = (K, cx, cy, r, at) => { for (let i = 0; i < 3; i++) K.ln(K.ell(cx, cy, r * (1 - i * 0.32), r * (1 - i * 0.32)), at + i * 0.15, 0.25, { w: 6, seed: 250 + i, col: i === 2 ? C.red : C.ink }); K.fill(K.ell(cx, cy, r * 0.12, r * 0.12), at + 0.5, { col: C.red, a: 0.8 }); };

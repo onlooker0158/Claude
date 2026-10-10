@@ -1,0 +1,395 @@
+{
+ "project": "/home/user/Claude/projects/叙事科普/代码工程",
+ "spec": null,
+ "segments": [
+  {
+   "id": "shot01",
+   "window_lt": [
+    0.0,
+    1.689
+   ],
+   "frames": 50,
+   "ms_mean": 53.4,
+   "ms_max": 80.5,
+   "ms_cold": 57.5,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.02,
+   "motion_max": 9.54,
+   "still_pairs_pct": 18.4,
+   "spike_ratio": 11.8,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     1.344,
+     1.689
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 0
+  },
+  {
+   "id": "shot04",
+   "window_lt": [
+    0.35,
+    4.02
+   ],
+   "frames": 110,
+   "ms_mean": 41.8,
+   "ms_max": 109.4,
+   "ms_cold": 66.4,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.74,
+   "motion_max": 11.63,
+   "still_pairs_pct": 45.0,
+   "spike_ratio": 58.0,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.417
+    ],
+    [
+     2.438,
+     2.707
+    ],
+    [
+     3.683,
+     4.02
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 316
+  },
+  {
+   "id": "shot20",
+   "window_lt": [
+    0.35,
+    3.836
+   ],
+   "frames": 104,
+   "ms_mean": 54.5,
+   "ms_max": 116.1,
+   "ms_cold": 68.3,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.3,
+   "motion_max": 8.98,
+   "still_pairs_pct": 73.8,
+   "spike_ratio": 179.6,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     2.245,
+     2.584
+    ],
+    [
+     3.498,
+     3.836
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "2020",
+     "lt": [
+      2.52,
+      3.84
+     ],
+     "t": [
+      70.78,
+      72.1
+     ]
+    }
+   ],
+   "text_tracked": 208
+  },
+  {
+   "id": "shot38",
+   "window_lt": [
+    0.35,
+    4.273
+   ],
+   "frames": 117,
+   "ms_mean": 54.5,
+   "ms_max": 88.7,
+   "ms_cold": 57.9,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.41,
+   "motion_max": 10.72,
+   "still_pairs_pct": 46.6,
+   "spike_ratio": 100.0,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.654
+    ],
+    [
+     2.379,
+     2.717
+    ],
+    [
+     3.935,
+     4.273
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 96
+  },
+  {
+   "id": "shot47",
+   "window_lt": [
+    0.35,
+    3.385
+   ],
+   "frames": 91,
+   "ms_mean": 54.6,
+   "ms_max": 105.5,
+   "ms_cold": 58.7,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 0.88,
+   "motion_max": 5.51,
+   "still_pairs_pct": 60.0,
+   "spike_ratio": 110.1,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     1.8,
+     2.104
+    ],
+    [
+     3.048,
+     3.385
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 0
+  },
+  {
+   "id": "shot66",
+   "window_lt": [
+    0.35,
+    4.839
+   ],
+   "frames": 134,
+   "ms_mean": 43.5,
+   "ms_max": 98.2,
+   "ms_cold": 57,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.05,
+   "motion_max": 7.92,
+   "still_pairs_pct": 52.6,
+   "spike_ratio": 158.4,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     2.409,
+     2.746
+    ],
+    [
+     4.501,
+     4.839
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 170
+  },
+  {
+   "id": "shot80",
+   "window_lt": [
+    0.35,
+    5.178
+   ],
+   "frames": 144,
+   "ms_mean": 57.9,
+   "ms_max": 112.4,
+   "ms_cold": 70.2,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.76,
+   "motion_max": 12.28,
+   "still_pairs_pct": 44.8,
+   "spike_ratio": 20.1,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     2.511,
+     2.848
+    ],
+    [
+     4.84,
+     5.178
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 252
+  },
+  {
+   "id": "shot95",
+   "window_lt": [
+    0.35,
+    3.108
+   ],
+   "frames": 82,
+   "ms_mean": 46.2,
+   "ms_max": 85.1,
+   "ms_cold": 60,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.94,
+   "motion_max": 9.96,
+   "still_pairs_pct": 39.5,
+   "spike_ratio": 47.8,
+   "spikes_at_lt": [
+    1.337,
+    1.371,
+    1.406
+   ],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.452
+    ],
+    [
+     1.576,
+     1.882
+    ],
+    [
+     2.768,
+     3.108
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "进字幕带",
+     "text": "目标函数",
+     "lt": [
+      1.75,
+      3.01
+     ],
+     "t": [
+      375.96,
+      377.22
+     ]
+    }
+   ],
+   "text_tracked": 254
+  },
+  {
+   "id": "shot109",
+   "window_lt": [
+    0.35,
+    7.739
+   ],
+   "frames": 221,
+   "ms_mean": 93.1,
+   "ms_max": 376.1,
+   "ms_cold": 342.5,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 3.55,
+   "motion_max": 14.81,
+   "still_pairs_pct": 44.1,
+   "spike_ratio": 39.4,
+   "spikes_at_lt": [
+    4.985,
+    5.019,
+    5.052,
+    5.086,
+    5.119,
+    5.153,
+    5.186,
+    5.22,
+    5.254,
+    5.287,
+    5.321,
+    5.354,
+    5.388,
+    5.422,
+    5.455,
+    5.489,
+    5.522,
+    5.556,
+    5.589,
+    5.623,
+    5.657,
+    5.69,
+    5.724,
+    5.757,
+    5.791,
+    5.825,
+    5.858,
+    5.892,
+    5.925,
+    5.959,
+    5.993,
+    6.026,
+    6.06,
+    6.093,
+    6.127,
+    6.16,
+    6.194,
+    6.228,
+    6.261,
+    6.295,
+    6.328,
+    6.362,
+    6.396,
+    6.429,
+    6.463,
+    6.496,
+    6.53,
+    6.563,
+    6.597,
+    6.631,
+    6.664,
+    6.698,
+    6.731,
+    6.765,
+    6.799,
+    6.832,
+    6.866,
+    6.899,
+    6.933,
+    6.967,
+    7.0,
+    7.034,
+    7.067,
+    7.101,
+    7.134,
+    7.168,
+    7.202,
+    7.235,
+    7.269
+   ],
+   "camera_events_lt": [
+    [
+     1.828,
+     2.096
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "进字幕带",
+     "text": "住于故事、线索结构、设定叙事、由我选择、？ : ？、叙事权、觉醒、画饼",
+     "lt": [
+      6.26,
+      7.74
+     ],
+     "t": [
+      438.81,
+      440.28
+     ]
+    }
+   ],
+   "text_tracked": 12877
+  }
+ ],
+ "transitions": [],
+ "page_errors": []
+}

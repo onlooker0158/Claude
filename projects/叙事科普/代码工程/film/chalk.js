@@ -171,7 +171,8 @@ B.camEvents = () => {
   if (B.FINAL_AT) ev.push({ at: B.FINAL_AT, kind: 'to', ...B.FINAL, dur: B.FINAL_DUR || 2.4, ease: MO.cubicInOut });
   B._ev = ev; return ev;
 };
-B.camAt = (t) => CAM.track({ x: W / 2, y: H / 2, z: 1 }, B.camEvents(), t);
+// 整块板统一缩 10%、往上让 62px：粉笔画永远落在字幕带上方
+B.camAt = (t) => { const c = CAM.track({ x: W / 2, y: H / 2, z: 1 }, B.camEvents(), t); const z = c.z * 0.9; return { ...c, z, y: c.y + 62 / z }; };
 
 // ---------- 纹理 ----------
 const grainTile = () => PAINT.cached('chalk_grain', 384, 384, (g) => {

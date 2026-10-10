@@ -44,7 +44,7 @@ cell('c1', (K, t) => {
 // c2 基石：一切推演的出发点（第 3 行前半）
 cell('c2', (K, t) => {
   const t0 = VO.lines[3].t0;
-  const st = A(3, '最最基本');
+  const st = VO.lines[3].t0 + 0.2;
   K.ln(K.rect(700, 700, 520, 160), st, 0.5, { w: 8, seed: 401 });
   K.hatch([[700, 700], [1220, 700], [1220, 860], [700, 860]], st + 0.4, 0.5, { a: 0.3 });
   K.ln([[560, 860], [1360, 860]], t0 + 0.1, 0.3, { w: 6, col: C.sub, seed: 400 });
@@ -52,7 +52,7 @@ cell('c2', (K, t) => {
   const tree = [[[960, 700], [960, 560]], [[960, 560], [760, 420]], [[960, 560], [1160, 420]], [[760, 420], [640, 280]], [[760, 420], [860, 270]], [[1160, 420], [1070, 270]], [[1160, 420], [1290, 280]]];
   tree.forEach((s, i) => K.arrow(s, br + i * 0.12, 0.2, { w: 6, col: i < 3 ? C.ink : C.sub, head: 18, seed: 410 + i }));
   [[640, 240], [860, 230], [1070, 230], [1290, 240]].forEach(([x, y], i) => K.ln(K.rect(x - 40, y - 34, 80, 50), br + 0.9 + i * 0.1, 0.15, { w: 5, seed: 420 + i }));
-  K.txt('出发点', 960, 780, A(3, '出发点'), { size: 72, col: C.yel });
+  K.txt('出发点', 960, 780, A(3, '推演'), { size: 72, col: C.yel });
 });
 
 // c3 印章盖下「设定」（第 3 行后半）
@@ -147,14 +147,14 @@ cell('c8', (K, t) => {
   for (let j = 0; j < 5; j++) { const y = 570 + j * 45; K.ln(Array.from({ length: 9 }, (_, i) => { const x = 1350 + i * 22.5; return [x, y + 46 * Math.exp(-((x - 1440) ** 2 + (y - 660) ** 2) / 5000)]; }), a3 + 0.7 + j * 0.06, 0.15, { w: 3, col: C.sub, seed: 600 + j, nopen: true }); }
   K.fill(K.ell(1440, 690, 26, 26), a3 + 1.0, { col: C.red });
   // 第 28 行：因果 / 想象力 / 舞台
-  K.txt('因果', 480, 868, A(28, '因果'), { size: 74, col: C.red });
-  K.txt('想象力', 960, 868, A(28, '想象力'), { size: 74, col: C.red });
-  const sg = A(28, '舞台');
+  K.txt('因果', 480, 868, A(28, '狭义相对论'), { size: 74, col: C.red });
+  K.txt('想象力', 960, 868, A(28, '量子力学'), { size: 74, col: C.red });
+  const sg = A(28, '广义相对论') + 0.1;
   K.ln([[300, 200], [300, 60], [1620, 60], [1620, 200]], sg - 0.1, 0.5, { w: 6, col: C.red, seed: 620 });
   for (let i = 0; i < 6; i++) K.ln([[320 + i * 40, 70], [340 + i * 34, 196]], sg + 0.3 + i * 0.03, 0.08, { w: 4, col: C.red, a: 0.7, nopen: true, seed: 621 + i });
   for (let i = 0; i < 6; i++) K.ln([[1600 - i * 40, 70], [1580 - i * 34, 196]], sg + 0.3 + i * 0.03, 0.08, { w: 4, col: C.red, a: 0.7, nopen: true, seed: 631 + i });
   K.txt('舞台', 1440, 130, sg + 0.4, { size: 64, col: C.red });
-  PR.chain(K, 820, 140, 0.4, sg + 0.6);
+  PR.chain(K, 820, 140, 0.4, sg + 0.5);
 });
 
 // c9 2020：沃尔夫勒姆物理项目，从一个点长出一张网（第 11 行）
@@ -203,8 +203,9 @@ cell('c11', (K, t) => {
   K.txt('？', 960, 260, A(14, '什么样的要求'), { size: 130, col: C.yel, instant: true, off: [A(15, '叙事') - 0.4, 0.2] });
   const ans = A(15, '叙事'), dq = MO.cubicIn(clamp((t - ans + 0.5) / 0.5));
   if (t > ans - 0.5) K.at(960, 280 + dq * 440, 0, 0.42, () => PR.chain(K, 0, 0, 1, ans - 0.5, {}));
-  if (t > ans) K.hatch(K.ell(960, 720, 180, 180, 0, Math.PI * 2, 40), ans, 0.4, { col: C.yel, a: 0.35 });
-  if (t > ans) { const k = MO.slam(t, ans + 0.05); K.at(1480, 560, -0.06, k, () => K.txt('叙事', 0, 0, ans + 0.05, { size: 210, col: C.yel, instant: true })); }
+  if (t > ans) K.hatch(K.ell(960, 720, 180, 180, 0, Math.PI * 2, 40), ans, 0.4, { col: C.yel, a: 0.6, gap: 10 });
+  if (t > ans) { const k = MO.slam(t, ans + 0.05); K.at(1440, 520, -0.06, k, () => K.txt('叙事', 0, 0, ans + 0.05, { size: 190, col: C.yel, instant: true }));
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; K.ln([[960 + Math.cos(a) * 205, 720 + Math.sin(a) * 205], [960 + Math.cos(a) * 250, 720 + Math.sin(a) * 250]], ans + 0.2 + i * 0.03, 0.08, { w: 5, col: C.yel, seed: 870 + i, nopen: true }); } }
 });
 
 // c12 珠子：散落的事实被一根线串起来（第 16 行）

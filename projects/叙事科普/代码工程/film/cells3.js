@@ -25,7 +25,8 @@ cell('cup', (K, t) => {
   // 预测：虚线画的杯子举起、水流向一滴「喝到」
   K.at(1150, 520, -0.6, 1.0, () => { K.ln([[-62, -170], [-50, 0], [50, 0], [62, -170]], pr, 0.4, { w: 5, col: C.sub, dash: [10, 10], seed: 3110, off: [sp, 0.2] }); });
   K.arrow(K.arc3([880, 600], [1080, 420], -0.3), pr + 0.2, 0.4, { w: 5, col: C.sub, dash: [10, 10], seed: 3111, off: [sp, 0.2] });
-  K.ln(K.smooth([[1230, 400], [1300, 360], [1360, 420], [1330, 470]]), A(38, '喝到水'), 0.3, { w: 6, col: C.yel, seed: 3112, off: [sp, 0.2] });
+  K.ln([[1300, 330], [1270, 390], [1268, 420], [1285, 445], [1315, 445], [1332, 420], [1330, 390], [1300, 330]], A(38, '喝到水'), 0.3, { w: 6, col: C.yel, seed: 3112, off: [sp, 0.2] });
+  K.txt('喝到水', 1300, 520, A(38, '喝到水') + 0.2, { size: 48, col: C.yel, off: [sp, 0.2] });
   K.check(1440, 360, 34, A(38, '喝到水') + 0.3, { off: [sp, 0.2] });
   if (t > sp + 0.2) { const r = U.rng(2), k = MO.expoOut(clamp((t - sp - 0.2) / 0.5)); for (let i = 0; i < 12; i++) { const a = -0.2 - r() * 1.3, d = (120 + r() * 260) * k; K.fill(K.ell(1010 + Math.cos(a) * d * 1.4, 810 - Math.abs(Math.sin(a)) * d * 0.5, 8 + r() * 14, 6 + r() * 8), sp + 0.2, { col: C.ink, a: 0.6 }); }
     K.ln(K.smooth([[960, 812], [1150, 800], [1420, 815], [1600, 806]]), sp + 0.25, 0.4, { w: 5, col: C.ink, seed: 3120, nopen: true }); }
@@ -83,9 +84,9 @@ cell('novel', (K, t) => {
   if (t > gap) { K.ln([[1080, 560], [1140, 680], [1160, 820]], gap, 0.25, { w: 6, col: C.red, seed: 3310 }); K.ln([[1200, 520], [1230, 650], [1250, 820]], gap + 0.1, 0.25, { w: 6, col: C.red, seed: 3311 }); K.txt('能否实现？', 1170, 400, A(42, '能否实现'), { size: 60, col: C.yel }); }
   // 第 43 行：指南针指向旗子
   const cp = L0(43) + 0.1;
-  K.ln(K.ell(360, 330, 120, 120, -1.6, -1.6 + Math.PI * 2.03), cp, 0.4, { w: 7, seed: 3320 });
-  const ang = Math.atan2(80 - 330, 1600 - 360), nq = MO.backOut(clamp((t - cp - 0.4) / 0.5)), aa = lerp(ang + 1.6, ang, nq);
-  K.ln([[360 - Math.cos(aa) * 90, 330 - Math.sin(aa) * 90], [360 + Math.cos(aa) * 100, 330 + Math.sin(aa) * 100]], cp + 0.4, 0.1, { w: 8, col: C.red, seed: 3321, nopen: true, amp: 0.4 });
+  const ang = Math.atan2(110 - 330, 1600 - 360), nq = MO.backOut(clamp((t - cp - 0.5) / 0.6)), aa = lerp(ang + 1.6, ang, nq);
+  PR.compass(K, 360, 330, 130, cp, aa, { seed: 3320 });
+  K.ln([[500, 300], [1560, 130]], cp + 1.1, 0.5, { w: 4, col: C.red, dash: [10, 12], seed: 3322, nopen: true });
   K.txt('人生意义', 360, 520, A(43, '人生意义'), { size: 60, col: C.yel });
 });
 
@@ -95,20 +96,20 @@ cell('crowd', (K, t) => {
   const t0 = L0(44) + 0.1, co = A(44, '大规模合作') - 0.2, q = MO.cubicInOut(clamp((t - co) / 0.9));
   K.txt('③ 协调', 960, 130, t0, { size: 72, col: C.yel });
   DOTS.forEach((d, i) => K.fill(K.ell(lerp(d.x, d.tx, q), lerp(d.y, d.ty, q), 12, 12), t0 + 0.3 + i * 0.012, { col: i % 9 ? C.ink : C.yel }));
-  const ic = A(44, '神话') - 0.2, xs = [520, 740, 960, 1180, 1400], y = 420;
+  const ic = A(44, '神话') - 0.2, xs = [520, 740, 960, 1180, 1400], y = 420, IC = (k) => ic + k * 0.45;
   // 神话：云和闪电
   K.ln(K.smooth([[460, 410], [470, 370], [510, 360], [540, 330], [590, 350], [600, 400], [560, 420], [470, 420]]), ic, 0.3, { w: 5, seed: 3400 }); K.ln([[520, 430], [500, 480], [530, 480], [510, 530]], ic + 0.25, 0.12, { w: 5, col: C.yel, seed: 3401 });
   // 国家：旗
-  K.ln([[700, 520], [700, 330]], A(44, '国家'), 0.15, { w: 6, seed: 3402 }); K.ln([[700, 335], [800, 360], [700, 400]], A(44, '国家') + 0.12, 0.15, { w: 5, col: C.red, seed: 3403 });
+  K.ln([[700, 520], [700, 330]], IC(1), 0.15, { w: 6, seed: 3402 }); K.ln([[700, 335], [800, 360], [700, 400]], IC(1) + 0.12, 0.15, { w: 5, col: C.red, seed: 3403 });
   // 货币：钱币
-  K.ln(K.ell(960, 420, 60, 60), A(44, '货币'), 0.2, { w: 6, seed: 3404 }); K.txt('¥', 960, 422, A(44, '货币') + 0.15, { size: 66, col: C.yel, instant: true });
+  K.ln(K.ell(960, 420, 60, 60), IC(2), 0.2, { w: 6, seed: 3404 }); K.txt('¥', 960, 422, IC(2) + 0.15, { size: 66, col: C.yel, instant: true });
   // 公司：楼
-  K.ln([[1130, 500], [1130, 340], [1230, 340], [1230, 500]], A(44, '公司'), 0.25, { w: 6, seed: 3405 }); for (let i = 0; i < 3; i++) K.ln([[1150, 370 + i * 40], [1210, 370 + i * 40]], A(44, '公司') + 0.2, 0.05, { w: 4, col: C.sub, seed: 3406 + i, nopen: true });
+  K.ln([[1130, 500], [1130, 340], [1230, 340], [1230, 500]], IC(3), 0.25, { w: 6, seed: 3405 }); for (let i = 0; i < 3; i++) K.ln([[1150, 370 + i * 40], [1210, 370 + i * 40]], IC(3) + 0.2, 0.05, { w: 4, col: C.sub, seed: 3406 + i, nopen: true });
   // 法律：天平
-  const lw = A(44, '法律');
+  const lw = IC(4);
   K.ln([[1400, 500], [1400, 340]], lw, 0.12, { w: 6, seed: 3410 }); K.ln([[1320, 360], [1480, 360]], lw + 0.1, 0.1, { w: 6, seed: 3411 }); K.ln(K.ell(1320, 420, 40, 14, 0, Math.PI, 8), lw + 0.18, 0.08, { w: 5, seed: 3412 }); K.ln(K.ell(1480, 420, 40, 14, 0, Math.PI, 8), lw + 0.22, 0.08, { w: 5, seed: 3413 });
   K.txt('虚构的东西', 960, 250, A(44, '虚构'), { size: 56, col: C.sub });
-  for (let i = 0; i < 5; i++) K.ln([[xs[i], 540], [lerp(xs[i], 960, 0.5), 610]], A(44, '法律') + 0.4 + i * 0.05, 0.12, { w: 3, col: C.yel, dash: [8, 8], seed: 3420 + i, nopen: true });
+  for (let i = 0; i < 5; i++) K.ln([[xs[i], 540], [lerp(xs[i], 960, 0.5), 610]], IC(4) + 0.4 + i * 0.05, 0.12, { w: 3, col: C.yel, dash: [8, 8], seed: 3420 + i, nopen: true });
 });
 
 // 钞票（第 45 行）
@@ -174,9 +175,8 @@ cell('react', (K, t) => {
   const r = U.rng(14); const bits = ['0110', '%', '3.14', '∑', '101', '‰', '42', '∆']; for (let i = 0; i < 22; i++) K.txt(bits[i % bits.length], 300 + r() * 520, 820 - Math.pow(r(), 0.7) * 380 - (i % 5) * 20, t0 + i * 0.05, { size: 40 + r() * 30, col: C.sub, instant: true, rot: (r() - 0.5) * 0.8, font: '"CMU-rm"' });
   for (let i = 0; i < 5; i++) K.ln(K.rect(320 + i * 90, 820 - 60 - i * 30, 50, 60 + i * 30), t0 + 0.6 + i * 0.05, 0.12, { w: 4, col: C.sub, seed: 3900 + i, nopen: true });
   PR.chain(K, 1460, 300, 0.75, A(50, '对叙事'));
-  const nq = MO.backOut(clamp((t - A(50, '对叙事') - 0.6) / 0.4)), aa = lerp(Math.PI * 0.85, Math.atan2(300 - 620, 1460 - 1160), nq);
-  K.ln(K.ell(1160, 620, 110, 110, -1.6, -1.6 + Math.PI * 2.03), t0 + 0.4, 0.4, { w: 7, seed: 3910 });
-  K.ln([[1160 - Math.cos(aa) * 70, 620 - Math.sin(aa) * 70], [1160 + Math.cos(aa) * 90, 620 + Math.sin(aa) * 90]], t0 + 0.7, 0.1, { w: 8, col: C.red, seed: 3911, nopen: true, amp: 0.4 });
+  const nq = MO.backOut(clamp((t - A(50, '对叙事') - 0.6) / 0.5)), aa = lerp(Math.PI * 0.85, Math.atan2(300 - 620, 1460 - 1160), nq);
+  PR.compass(K, 1160, 620, 130, t0 + 0.4, aa, { seed: 3910 });
   K.txt('对叙事做反应', 1300, 830, A(50, '叙事做反应'), { size: 64, col: C.yel });
 });
 
@@ -208,9 +208,9 @@ cell('plug', (K, t) => {
 // 手电：一切叙事都是主观的；周围无数剧情（第 53、54 行）
 cell('flash', (K, t) => {
   const t0 = L0(53) + 0.1, sw = A(54, '只关注这一个') - 0.1, q = MO.cubicInOut(clamp((t - sw) / 0.5));
-  const ang = lerp(-0.62, -0.2, q), ox = 260, oy = 820;
+  const ox = 260, oy = 820, aimS = Math.atan2(470 - oy, 1380 - ox), ang = lerp(-0.62, aimS, q);
   K.at(ox, oy, ang, 1, () => { K.ln([[-120, -40], [60, -40], [110, -70], [110, 70], [60, 40], [-120, 40], [-120, -40]], t0, 0.4, { w: 7, seed: 4200 }); });
-  const L = 1500, sp = 0.17;
+  const L = lerp(1500, Math.hypot(1380 - ox, 470 - oy) + 120, q), sp = lerp(0.17, 0.09, q);
   K.hatch([[ox + Math.cos(ang) * 110, oy + Math.sin(ang) * 110], [ox + Math.cos(ang - sp) * L, oy + Math.sin(ang - sp) * L], [ox + Math.cos(ang + sp) * L, oy + Math.sin(ang + sp) * L]], t0 + 0.3, 0.4, { col: C.yel, a: 0.2, gap: 16 });
   K.ln([[ox + Math.cos(ang - sp) * 130, oy + Math.sin(ang - sp) * 130], [ox + Math.cos(ang - sp) * L, oy + Math.sin(ang - sp) * L]], t0 + 0.3, 0, { w: 4, col: C.yel, seed: 4201, nopen: true, a: 0.7 });
   K.ln([[ox + Math.cos(ang + sp) * 130, oy + Math.sin(ang + sp) * 130], [ox + Math.cos(ang + sp) * L, oy + Math.sin(ang + sp) * L]], t0 + 0.3, 0, { w: 4, col: C.yel, seed: 4202, nopen: true, a: 0.7 });
@@ -226,7 +226,7 @@ cell('flash', (K, t) => {
   const spx = 1380, spy = 470, g = MO.cubicOut(clamp((t - s0 - 0.3) / 1.2));
   K.ln([[spx - 80, spy + 60], [spx + 80, spy + 60]], s0 + 0.2, 0.1, { w: 5, seed: 4240 });
   K.ln([[spx, spy + 60], [spx, spy + 60 - 120 * g]], s0 + 0.3, 0, { w: 6, seed: 4241, nopen: true, amp: 0.5 });
-  if (g > 0.5) { K.ln(K.ell(spx - 34, spy + 60 - 110 * g, 34, 16), s0 + 0.9, 0.12, { w: 5, col: C.yel, seed: 4242, nopen: true }); K.ln(K.ell(spx + 34, spy + 60 - 120 * g, 34, 16), s0 + 1.0, 0.12, { w: 5, col: C.yel, seed: 4243, nopen: true }); }
+  if (g > 0.5) { K.ln(K.tf(K.ell(0, 0, 38, 15), spx - 36, spy + 70 - 110 * g, 1, -0.6), s0 + 0.9, 0.12, { w: 5, col: C.yel, seed: 4242, nopen: true }); K.ln(K.tf(K.ell(0, 0, 38, 15), spx + 36, spy + 50 - 110 * g, 1, 0.6), s0 + 1.0, 0.12, { w: 5, col: C.yel, seed: 4243, nopen: true }); }
   K.txt('只关注这一个', 1380, 820, sw + 0.3, { size: 56, col: C.yel });
 });
 
@@ -252,8 +252,8 @@ cell('report', (K, t) => {
   K.txt('扩张', 1560, 420, A(56, '扩张'), { size: 70, col: C.yel });
   K.ln([[560, 300], [1700, 300]], two, 0.4, { w: 5, col: C.red, dash: [16, 12], seed: 4430 });
   K.txt('股价已经很高', 1460, 250, A(56, '股价'), { size: 44, col: C.red });
-  K.arrow([[1620, 400], [1620, 640]], A(56, '别再加仓') - 0.3, 0.3, { w: 9, col: C.red, seed: 4431, head: 36 });
-  K.txt('别再加仓', 1620, 720, A(56, '别再加仓'), { size: 60, col: C.red });
+  K.arrow([[1780, 380], [1780, 620]], A(56, '别再加仓') - 0.3, 0.3, { w: 9, col: C.red, seed: 4431, head: 36 });
+  K.txt('别再加仓', 1720, 700, A(56, '别再加仓'), { size: 60, col: C.red });
 });
 
 // 靶子：目标函数（第 57 行）
@@ -276,7 +276,7 @@ cell('box', (K, t) => {
   K.txt('别人的叙事', 620, 220, A(58, '别人设定好的叙事'), { size: 60, col: C.sub });
   PR.pawn(K, px, (q > 0 ? py : 640) + 60, 1.1, t0, { fill: true, nopen: q > 0 });
   // 经验值条
-  const xp = A(60, '经验值') - 0.2, xq = MO.cubicOut(clamp((t - xp - 0.3) / 0.9));
+  const xp = A(60, '目标函数') - 0.2, xq = MO.cubicOut(clamp((t - xp - 0.3) / 1.2));
   K.ln(K.rect(1000, 820, 600, 50), xp, 0.3, { w: 6, seed: 4620 });
   if (t > xp + 0.3) K.fill([[1004, 824], [1004 + 592 * xq * 0.8, 824], [1004 + 592 * xq * 0.8, 866], [1004, 866]], xp + 0.3, { col: C.yel, a: 0.8 });
   K.txt('经验值', 1300, 760, xp + 0.1, { size: 60, col: C.yel });
@@ -292,8 +292,8 @@ cell('pie', (K, t) => {
   K.txt('画饼', 1100, 820, A(59, '画饼'), { size: 90, col: C.yel });
   // 加班的月亮
   const ov = A(59, '天天加班') - 0.2;
-  for (let i = 0; i < 5; i++) { const x = 220 + (i % 3) * 140, y = 330 + Math.floor(i / 3) * 160; K.ln(K.ell(x, y, 46, 46, -1.1, 2.4, 14), ov + i * 0.12, 0.15, { w: 5, seed: 4730 + i }); K.ln(K.ell(x + 24, y - 12, 36, 36, 2.6, 0.2 + Math.PI * 2, 14).filter(p => Math.hypot(p[0] - x, p[1] - y) < 46), ov + i * 0.12 + 0.1, 0.12, { w: 5, seed: 4740 + i, nopen: true }); }
-  K.txt('赚大钱', 1100, 480, A(59, '赚大钱'), { size: 76, col: C.yel });
+  for (let i = 0; i < 5; i++) { const x = 220 + (i % 3) * 140, y = 330 + Math.floor(i / 3) * 160; const cres = K.ell(x, y, 46, 46, 0.6, 0.6 + Math.PI * 1.55, 18).concat(K.ell(x + 22, y - 14, 38, 38, 0.6 + Math.PI * 1.45, 0.75, 18)); K.ln(cres, ov + i * 0.12, 0.2, { w: 5, col: C.yel, seed: 4730 + i }); K.hatch(cres, ov + i * 0.12 + 0.15, 0.15, { col: C.yel, a: 0.5, gap: 8 }); }
+  K.fill(K.rect(960, 432, 280, 96), A(59, '赚大钱') - 0.05, { col: C.bg, a: 1 }); K.txt('赚大钱', 1100, 480, A(59, '赚大钱'), { size: 76, col: C.yel });
 });
 
 // 墙上的门：跳出来（第 61 行）
