@@ -8,7 +8,7 @@ const B = window.BOARD = {};
 // 色板 chalk：#23302B #2E3D37 #F1EFE6 #A9B3AA #F4D35E #E87D5A
 const C = B.C = { bg: '#23302B', surface: '#2E3D37', ink: '#F1EFE6', sub: '#A9B3AA', yel: '#F4D35E', red: '#E87D5A' };
 const FONT = '"LXGWWenKai-500"';
-const CW = 2300, CH = 1350, COLS = 8;            // 格间距、每行格数（蛇形排）
+const CW = 2120, CH = 1250, COLS = 8;            // 格间距、每行格数（蛇形排）
 
 // ---------- 口播时间 ----------
 // VO.at(行号, '原文子串', nth=0) → 这个子串第一个字被念到的时刻（秒）
@@ -144,15 +144,15 @@ B.camEvents = () => {
         const zm = Math.min(z, prev.z) * clamp(1.2 * W / (d + W), 0.18, 0.6), mx = (x + prev.x) / 2, my = (y + prev.y) / 2;
         ev.push({ at: s.t0 - 0.05, kind: 'to', x: mx, y: my, z: zm, dur: 0.42, ease: MO.cubicIn });
         ev.push({ at: s.t0 + 0.37, kind: 'to', x, y, z, dur: 0.42, ease: MO.cubicOut });
-      } else ev.push({ at: s.t0 - 0.02, kind: 'to', x, y, z, dur: d > 10 ? 0.32 : 0.28 });
+      } else ev.push({ at: s.t0 - (d > 10 ? 0.35 : 0.02), kind: 'to', x, y, z, dur: d > 10 ? 0.75 : 0.28, ease: d > 10 ? MO.sineInOut : undefined });
     }
     let cur = { x, y, z };
     // 没写镜内动作的镜头：在镜头中段的一个词上补一次快推（已推近的镜头改成快拉），动在事件上
-    if (!(s.ev || []).some(e => e.kind === 'punch' || e.kind === 'pan' || e.kind === 'to' || e.kind === 'slam') && s.t1 - s.t0 > 2.2) {
+    if (!(s.ev || []).some(e => e.kind === 'punch' || e.kind === 'pan' || e.kind === 'to') && s.t1 - s.t0 > 2.2) {
       const L = VO.lines[s.line], want = s.t0 + Math.min(2.4, (s.t1 - s.t0) * 0.5);
       const sp = L.spans.filter(a => a[2] > s.t0 + 0.9 && a[2] < s.t1 - 0.8).sort((a, b) => Math.abs(a[2] - want) - Math.abs(b[2] - want))[0];
       const at = sp ? sp[2] : want;
-      s.ev = (s.ev || []).concat([{ t: at, kind: 'punch', k: z >= 1.25 ? -0.18 : 0.2 }]);
+      s.ev = (s.ev || []).concat([{ t: at, kind: 'punch', k: z >= 1.25 ? -0.22 : 0.3, dur: 0.36 }]);
     }
     for (const e of s.ev || []) {
       const at = e.t ?? B.at(e.line ?? s.line, e.w) + (e.d || 0);
@@ -184,13 +184,18 @@ const boardTile = () => PAINT.cached('chalk_board', 512, 512, (g) => {
   for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) {
     const ax = x / 512 * Math.PI * 2, ay = y / 512 * Math.PI * 2;
     const n = PAINT.fbm(Math.cos(ax) * 1.3 + 4, Math.sin(ax) * 1.3 + Math.cos(ay) * 1.1, 4), gr = (r() - .5) * 6, i = (y * 512 + x) * 4;
-    d[i] = b[0] + n * 9 + gr; d[i + 1] = b[1] + n * 10 + gr; d[i + 2] = b[2] + n * 9 + gr; d[i + 3] = 255;
+    d[i] = b[0] + n * 11 + gr; d[i + 1] = b[1] + n * 12 + gr; d[i + 2] = b[2] + n * 11 + gr; d[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
 });
 // 擦过的旧粉笔灰：大片极淡的弧形抹痕（世界坐标，固定）
-const SMEARS = (() => { const r = U.rng(23), o = []; for (let i = 0; i < 260; i++) o.push({ x: r() * CW * COLS, y: r() * CH * 9 - 300, w: 500 + r() * 900, h: 60 + r() * 120, a: r() * 0.5 - 0.25, al: 0.025 + r() * 0.04 }); return o; })();
+const SMEARS = (() => { const r = U.rng(23), o = []; for (let i = 0; i < 420; i++) o.push({ x: r() * CW * COLS, y: r() * CH * 9 - 300, w: 500 + r() * 900, h: 60 + r() * 120, a: r() * 0.5 - 0.25, al: 0.025 + r() * 0.035 }); return o; })();
 
+// 板面上零星的粉笔灰点和细擦痕（世界坐标，固定；真黑板上到处都是）
+const DUST = (() => { const r = U.rng(29), o = []; for (let i = 0; i < 26000; i++) o.push({ x: -1500 + r() * (CW * COLS + 3000), y: -1500 + r() * (CH * 9 + 3000), l: 4 + r() * 16, a: r() * Math.PI, al: 0.10 + r() * 0.20, w: 2 + r() * 3 }); return o; })();
+// 没擦干净的旧板书残影（世界坐标，固定，极淡）
+const GHOST = (() => { const r = U.rng(37), words = ['x² + y²', '∫ f(x) dx', 'E = mc²', 'a + b = c', 'Δt', 'sin θ', '∑ n', 'p ∝ 1/V', 'F = G m₁m₂/r²', 'λ', 'v = s / t', '→', '√2', 'π r²', 'ΔS ≥ 0', 'H₂O', 'log x', '∞', 'dy/dx', 'P(A|B)'], o = [];
+  for (let i = 0; i < 3400; i++) o.push({ x: -1500 + r() * (CW * COLS + 3000), y: -1500 + r() * (CH * 9 + 3000), s: words[(r() * words.length) | 0], z: 44 + r() * 60, rot: (r() - 0.5) * 0.3, al: 0.07 + r() * 0.07 }); return o; })();
 // ---------- 渲染一帧 ----------
 let layer = null;
 B.draw = (c, t) => {
@@ -204,6 +209,10 @@ B.draw = (c, t) => {
   c.fillRect(v0[0] - 10, v0[1] - 10, v1[0] - v0[0] + 20, v1[1] - v0[1] + 20);
   c.fillStyle = C.sub;
   for (const s of SMEARS) { if (s.x + s.w < v0[0] || s.x - s.w > v1[0] || s.y + s.w < v0[1] || s.y - s.w > v1[1]) continue; c.globalAlpha = s.al; c.beginPath(); c.ellipse(s.x, s.y, s.w / 2, s.h / 2, s.a, 0, 7); c.fill(); }
+  c.strokeStyle = C.sub; c.lineCap = 'round';
+  for (const s of DUST) { if (s.x < v0[0] - 20 || s.x > v1[0] + 20 || s.y < v0[1] - 20 || s.y > v1[1] + 20) continue; c.globalAlpha = s.al; c.lineWidth = s.w; c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(s.x + Math.cos(s.a) * s.l, s.y + Math.sin(s.a) * s.l); c.stroke(); }
+  c.fillStyle = C.sub; c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (const s of GHOST) { if (s.x < v0[0] - 300 || s.x > v1[0] + 300 || s.y < v0[1] - 100 || s.y > v1[1] + 100) continue; c.save(); c.globalAlpha = s.al; c.translate(s.x, s.y); c.rotate(s.rot); c.font = `${s.z | 0}px "CMU-it"`; c.fillText(s.s, 0, 0); c.restore(); }
   c.globalAlpha = 1; c.restore();
   // 粉笔层：先画所有可见格，再用颗粒打孔
   if (!layer) layer = PAINT.canvas(W, H);
