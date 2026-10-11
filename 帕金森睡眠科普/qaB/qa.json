@@ -1,0 +1,776 @@
+{
+ "project": "/home/user/Claude/帕金森睡眠科普/代码工程",
+ "spec": null,
+ "segments": [
+  {
+   "id": "b01",
+   "window_lt": [
+    0.0,
+    3.63
+   ],
+   "frames": 108,
+   "ms_mean": 27.2,
+   "ms_max": 48.6,
+   "ms_cold": 25.9,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.54,
+   "motion_max": 37.01,
+   "still_pairs_pct": 28.0,
+   "spike_ratio": 73.6,
+   "spikes_at_lt": [
+    0.373
+   ],
+   "camera_events_lt": [
+    [
+     0.0,
+     0.17
+    ],
+    [
+     0.746,
+     1.052
+    ],
+    [
+     2.409,
+     2.68
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "年纪大了？",
+     "lt": [
+      0.0,
+      0.88
+     ],
+     "t": [
+      0.0,
+      0.88
+     ]
+    },
+    {
+     "kind": "半截字",
+     "text": "夜里，睡得好吗？",
+     "lt": [
+      0.98,
+      3.63
+     ],
+     "t": [
+      0.98,
+      3.63
+     ]
+    }
+   ],
+   "text_tracked": 313
+  },
+  {
+   "id": "b02",
+   "window_lt": [
+    0.35,
+    3.88
+   ],
+   "frames": 105,
+   "ms_mean": 25.6,
+   "ms_max": 45.6,
+   "ms_cold": 24.9,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 0.83,
+   "motion_max": 8.13,
+   "still_pairs_pct": 43.3,
+   "spike_ratio": 31.9,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     1.979,
+     2.217
+    ],
+    [
+     2.76,
+     3.065
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 210
+  },
+  {
+   "id": "b03",
+   "window_lt": [
+    0.35,
+    2.03
+   ],
+   "frames": 50,
+   "ms_mean": 31.7,
+   "ms_max": 53.9,
+   "ms_cold": 29.9,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.63,
+   "motion_max": 29.54,
+   "still_pairs_pct": 75.5,
+   "spike_ratio": 590.8,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.899,
+     1.139
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 196
+  },
+  {
+   "id": "b04",
+   "window_lt": [
+    0.35,
+    4.38
+   ],
+   "frames": 120,
+   "ms_mean": 14.2,
+   "ms_max": 26.8,
+   "ms_cold": 17.5,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 3.96,
+   "motion_max": 44.65,
+   "still_pairs_pct": 70.6,
+   "spike_ratio": 892.9,
+   "spikes_at_lt": [
+    0.96,
+    1.129,
+    1.163,
+    1.197,
+    1.231,
+    1.264,
+    1.298,
+    1.332,
+    1.366,
+    3.703
+   ],
+   "camera_events_lt": [
+    [
+     0.384,
+     0.621
+    ],
+    [
+     2.822,
+     3.127
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 237
+  },
+  {
+   "id": "b05",
+   "window_lt": [
+    0.35,
+    3.18
+   ],
+   "frames": 84,
+   "ms_mean": 25.0,
+   "ms_max": 47.1,
+   "ms_cold": 23,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.63,
+   "motion_max": 14.59,
+   "still_pairs_pct": 15.7,
+   "spike_ratio": 27.2,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     1.987,
+     2.225
+    ],
+    [
+     2.6,
+     2.873
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 203
+  },
+  {
+   "id": "b06",
+   "window_lt": [
+    0.35,
+    4.85
+   ],
+   "frames": 135,
+   "ms_mean": 40.2,
+   "ms_max": 71.9,
+   "ms_cold": 129,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 3.82,
+   "motion_max": 45.75,
+   "still_pairs_pct": 73.9,
+   "spike_ratio": 915.0,
+   "spikes_at_lt": [
+    2.13,
+    2.902
+   ],
+   "camera_events_lt": [
+    [
+     1.66,
+     1.962
+    ],
+    [
+     3.204,
+     3.473
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "进字幕带",
+     "text": "10月9日",
+     "lt": [
+      0.35,
+      1.76
+     ],
+     "t": [
+      17.55,
+      18.96
+     ]
+    },
+    {
+     "kind": "半截字",
+     "text": "已按时服药",
+     "lt": [
+      1.83,
+      4.85
+     ],
+     "t": [
+      19.03,
+      22.05
+     ]
+    }
+   ],
+   "text_tracked": 1004
+  },
+  {
+   "id": "b07",
+   "window_lt": [
+    0.35,
+    5.05
+   ],
+   "frames": 141,
+   "ms_mean": 21.2,
+   "ms_max": 37.6,
+   "ms_cold": 38.4,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.46,
+   "motion_max": 16.69,
+   "still_pairs_pct": 2.9,
+   "spike_ratio": 191.4,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.484
+    ],
+    [
+     2.599,
+     2.868
+    ],
+    [
+     4.244,
+     4.513
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "18:00",
+     "lt": [
+      0.35,
+      2.7
+     ],
+     "t": [
+      22.42,
+      24.77
+     ]
+    },
+    {
+     "kind": "半截字",
+     "text": "症状控制线、22:00、10:00、曲线为概念示意，不代表任何药物的实测数据",
+     "lt": [
+      4.35,
+      5.05
+     ],
+     "t": [
+      26.42,
+      27.12
+     ]
+    }
+   ],
+   "text_tracked": 1342
+  },
+  {
+   "id": "b08",
+   "window_lt": [
+    0.35,
+    5.2
+   ],
+   "frames": 145,
+   "ms_mean": 21.9,
+   "ms_max": 42.7,
+   "ms_cold": 23.9,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.02,
+   "motion_max": 16.69,
+   "still_pairs_pct": 66.0,
+   "spike_ratio": 333.9,
+   "spikes_at_lt": [
+    4.324
+   ],
+   "camera_events_lt": [
+    [
+     1.192,
+     1.428
+    ],
+    [
+     3.482,
+     3.718
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "22:00、症状控制线、曲线为概念示意，不代表任何药物的实测数据",
+     "lt": [
+      0.35,
+      5.2
+     ],
+     "t": [
+      27.49,
+      32.34
+     ]
+    }
+   ],
+   "text_tracked": 1614
+  },
+  {
+   "id": "b09",
+   "window_lt": [
+    0.35,
+    3.62
+   ],
+   "frames": 98,
+   "ms_mean": 20.7,
+   "ms_max": 33.5,
+   "ms_cold": 34.3,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.22,
+   "motion_max": 18.01,
+   "still_pairs_pct": 58.8,
+   "spike_ratio": 360.3,
+   "spikes_at_lt": [
+    1.26
+   ],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.417
+    ],
+    [
+     2.71,
+     2.979
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "18:00、10:00",
+     "lt": [
+      0.35,
+      3.62
+     ],
+     "t": [
+      32.71,
+      35.98
+     ]
+    },
+    {
+     "kind": "叠字",
+     "text": "2:00｜让药效平稳覆盖整个夜晚、22:00｜让药效平稳覆盖整个夜晚",
+     "lt": [
+      2.95,
+      3.62
+     ],
+     "t": [
+      35.31,
+      35.98
+     ]
+    }
+   ],
+   "text_tracked": 934
+  },
+  {
+   "id": "b10",
+   "window_lt": [
+    0.35,
+    3.35
+   ],
+   "frames": 89,
+   "ms_mean": 22.6,
+   "ms_max": 33.9,
+   "ms_cold": 27.1,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.4,
+   "motion_max": 22.18,
+   "still_pairs_pct": 43.2,
+   "spike_ratio": 112.9,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.827,
+     1.066
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 964
+  },
+  {
+   "id": "b11",
+   "window_lt": [
+    0.35,
+    3.21
+   ],
+   "frames": 85,
+   "ms_mean": 29.5,
+   "ms_max": 62.5,
+   "ms_cold": 31.5,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.99,
+   "motion_max": 24.23,
+   "still_pairs_pct": 19.0,
+   "spike_ratio": 65.2,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.486
+    ],
+    [
+     1.201,
+     1.44
+    ],
+    [
+     2.12,
+     2.325
+    ],
+    [
+     2.767,
+     3.108
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 170
+  },
+  {
+   "id": "b12",
+   "window_lt": [
+    0.35,
+    3.28
+   ],
+   "frames": 87,
+   "ms_mean": 29.5,
+   "ms_max": 58.4,
+   "ms_cold": 28,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 5.17,
+   "motion_max": 67.96,
+   "still_pairs_pct": 39.5,
+   "spike_ratio": 183.1,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.52
+    ],
+    [
+     1.611,
+     1.917
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "年纪大了？",
+     "lt": [
+      0.49,
+      1.64
+     ],
+     "t": [
+      43.09,
+      44.24
+     ]
+    },
+    {
+     "kind": "进字幕带",
+     "text": "年纪大了？",
+     "lt": [
+      0.52,
+      1.61
+     ],
+     "t": [
+      43.12,
+      44.21
+     ]
+    },
+    {
+     "kind": "半截字",
+     "text": "年纪大了？",
+     "lt": [
+      1.88,
+      3.28
+     ],
+     "t": [
+      44.48,
+      45.88
+     ]
+    }
+   ],
+   "text_tracked": 174
+  },
+  {
+   "id": "b13",
+   "window_lt": [
+    0.35,
+    4.45
+   ],
+   "frames": 122,
+   "ms_mean": 32.2,
+   "ms_max": 61.6,
+   "ms_cold": 30.8,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.59,
+   "motion_max": 32.94,
+   "still_pairs_pct": 76.0,
+   "spike_ratio": 658.8,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     1.875,
+     2.112
+    ],
+    [
+     3.061,
+     3.332
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "已按时服药",
+     "lt": [
+      0.35,
+      1.94
+     ],
+     "t": [
+      46.25,
+      47.84
+     ]
+    }
+   ],
+   "text_tracked": 907
+  },
+  {
+   "id": "b14",
+   "window_lt": [
+    0.35,
+    4.09
+   ],
+   "frames": 112,
+   "ms_mean": 49.7,
+   "ms_max": 92.0,
+   "ms_cold": 38.1,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 4.68,
+   "motion_max": 43.94,
+   "still_pairs_pct": 82.0,
+   "spike_ratio": 878.8,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.35,
+     0.417
+    ],
+    [
+     1.428,
+     1.731
+    ],
+    [
+     2.035,
+     2.338
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 1067
+  },
+  {
+   "id": "b15",
+   "window_lt": [
+    0.35,
+    4.07
+   ],
+   "frames": 111,
+   "ms_mean": 39.9,
+   "ms_max": 75.1,
+   "ms_cold": 35.3,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 2.89,
+   "motion_max": 34.07,
+   "still_pairs_pct": 72.7,
+   "spike_ratio": 681.5,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.621,
+     0.857
+    ],
+    [
+     2.886,
+     3.157
+    ]
+   ],
+   "framing": [
+    {
+     "kind": "半截字",
+     "text": "翻身难，腿抽筋",
+     "lt": [
+      0.35,
+      0.65
+     ],
+     "t": [
+      54.83,
+      55.13
+     ]
+    }
+   ],
+   "text_tracked": 1139
+  },
+  {
+   "id": "b16",
+   "window_lt": [
+    0.35,
+    5.85
+   ],
+   "frames": 165,
+   "ms_mean": 23.8,
+   "ms_max": 42.0,
+   "ms_cold": 25.6,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 1.17,
+   "motion_max": 19.21,
+   "still_pairs_pct": 26.2,
+   "spike_ratio": 137.2,
+   "spikes_at_lt": [],
+   "camera_events_lt": [
+    [
+     0.652,
+     0.752
+    ],
+    [
+     1.255,
+     1.49
+    ],
+    [
+     2.396,
+     2.731
+    ]
+   ],
+   "framing": [],
+   "text_tracked": 525
+  }
+ ],
+ "transitions": [
+  {
+   "id": "b02",
+   "type": "cut",
+   "ms_max": 52.8
+  },
+  {
+   "id": "b03",
+   "type": "cut",
+   "ms_max": 44.4
+  },
+  {
+   "id": "b04",
+   "type": "cut",
+   "ms_max": 49.8
+  },
+  {
+   "id": "b05",
+   "type": "cut",
+   "ms_max": 29.9
+  },
+  {
+   "id": "b06",
+   "type": "cut",
+   "ms_max": 62.6
+  },
+  {
+   "id": "b07",
+   "type": "cut",
+   "ms_max": 83.2
+  },
+  {
+   "id": "b08",
+   "type": "cut",
+   "ms_max": 34.3
+  },
+  {
+   "id": "b09",
+   "type": "cut",
+   "ms_max": 38.5
+  },
+  {
+   "id": "b10",
+   "type": "cut",
+   "ms_max": 33.1
+  },
+  {
+   "id": "b11",
+   "type": "cut",
+   "ms_max": 26.5
+  },
+  {
+   "id": "b12",
+   "type": "cut",
+   "ms_max": 40.1
+  },
+  {
+   "id": "b13",
+   "type": "cut",
+   "ms_max": 58.1
+  },
+  {
+   "id": "b14",
+   "type": "cut",
+   "ms_max": 67.4
+  },
+  {
+   "id": "b15",
+   "type": "cut",
+   "ms_max": 93
+  },
+  {
+   "id": "b16",
+   "type": "cut",
+   "ms_max": 61.4
+  }
+ ],
+ "page_errors": []
+}
