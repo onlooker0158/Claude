@@ -98,13 +98,13 @@ SHOTS = [
     (64, 'b_busy', ('pan', 1200, 430), '一只空转轮', '转轮越转越快，转速线甩出来', '忙碌'),
     (65, 'b_study', ('pan',), '一本摊开的作业本', '本子上一行行写满同一个字', ''),
     (66, 'b_study', ('punch', 800, 450, .22), '作业本的那一页', '读、抄、背三个字越叠越密', '学习的样子'),
-    (67, 'b_study', ('pan', 1100, 450), '作业本旁的喇叭线', '一圈圈声波从本子上冒出来', '气势汹汹'),
+    (67, 'b_study', ('pan', 1000, 450), '作业本旁的喇叭线', '一圈圈声波从本子上冒出来', '气势汹汹'),
     (68, 'b_equal', ('pan',), '两行等式', '服从＝业绩，态度→能力，依次写出', ''),
     (69, 'b_equal', ('slam',), '第三行等式', '姿势→成果砸上去，下面画两道线', '姿势＝成果'),
     (70, 'b_loan', ('pan',), '一面写着题目的黑板', '粉笔写下题目，画一个放大镜', '简单模型'),
     (71, 'b_loan', ('pan', 1050, 430), '两个圆圈：你和同事', '两个圈画出来，一根箭头从你到同事', '8000'),
     (72, 'b_loan', ('slam',), '一根回来的箭头', '箭头从同事回到你，数字砸上去，差额被圈出一个问号', '少 8 元'),
-    (74, 'b_loan', ('punch', 1050, 330, .2), '一个方框：微信', '方框画在路上，箭头穿过它', '微信转账'),
+    (74, 'b_loan', ('punch', 1050, 430, .2), '一个方框：微信', '方框画在路上，箭头穿过它', '微信转账'),
     (75, 'b_loan', ('pan', 1050, 470), '方框下面的一小截', '方框扣下一小截，写上 −8', '手续费'),
     (76, 'b_loan', ('pan', 1550, 430), '同事那个圈', '圈里写下拿到多少，箭头指回去', '7992'),
     (77, 'b_loan', ('pan', 1050, 560), '还钱那根箭头', '箭头被描粗一遍', ''),
@@ -128,7 +128,7 @@ SHOTS = [
     (95, 'b_mountain', ('punch', 1150, 360, .2), '一条高波动曲线', '曲线从山后窜出，冲出一个大尖峰', '高波动世界'),
     (96, 'b_agent', ('pan',), '一把扳手', '扳手画在中间，一根箭头从屏外的粉笔指向它', '能动者'),
     (97, 'b_agent', ('punch', 800, 500, .2), '扳手', '扳手转过来，变成被握着的那一头', '你不是工具'),
-    (98, 'b_poem', ('pan', 560, 430), '一把锁', '锁身写上「古律」，锁里写下饥寒、不安', '古律如锁'),
+    (98, 'b_poem', ('pan', 560, 400), '一把锁', '锁身写上「古律」，锁里写下饥寒、不安', '古律如锁'),
     (100, 'b_poem', ('pan', 1150, 430), '一把钥匙', '钥匙画出来，布满锈点', '钥匙早已生锈'),
     (101, 'b_poem', ('punch', 1150, 380, .18), '挂钥匙的绳', '绳子绕上钥匙，挂成一枚徽章，钥匙轻轻晃', '信仰的徽章'),
     (TL['total'] - 0.8, 'b_poem', ('pull',), '整面黑板', '镜头拉远，整面黑板的板书都在，粉笔落进粉笔槽', ''),
@@ -144,12 +144,12 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
     at = round(max(0, t - 0.32), 3)
     p = POS[b]; kind = cam[0]
     if kind == 'pan' and len(cam) == 1:
-        cx, cy = world(b, min(p['w'], 1600) / 2 if p['w'] <= 1600 else 800, 430)
-        events.append({'at': round(max(0, t - 0.62), 3), 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.12, 'dur': 0.6}); cur_z = 1.12; lab = '横移'
+        cx, cy = world(b, min(p['w'], 1600) / 2 if p['w'] <= 1600 else 800, 450)
+        events.append({'at': round(max(0, t - 0.62), 3), 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.06, 'dur': 0.6}); cur_z = 1.06; lab = '横移'
     elif kind == 'pan':
         x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'pan', 'x': x, 'y': y}); lab = '横移'
     elif kind == 'punch':
-        x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'punch', 'k': cam[3], 'x': x, 'y': y}); cur_z *= 1 + cam[3]; lab = '快推'
+        x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'punch', 'k': round(cam[3] * .85, 3), 'x': x, 'y': y + 20}); cur_z *= 1 + cam[3] * .85; lab = '快推'
     elif kind == 'slam':
         events.append({'at': round(t, 3), 'kind': 'slam'}); lab = '砸入'
     elif kind == 'stay':
@@ -158,7 +158,7 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
         if k == len(SHOTS) - 1:
             events.append({'at': at, 'kind': 'to', 'x': BOARD['w'] / 2, 'y': BOARD['h'] / 2 + 120, 'z': round(min(1920 / (BOARD['w'] + 400), 1080 / (BOARD['h'] + 700)), 4), 'dur': 1.6})
         else:
-            cx, cy = world(b, 800, 430); events.append({'at': at, 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.12, 'dur': 0.36})
+            cx, cy = world(b, 800, 450); events.append({'at': at, 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.06, 'dur': 0.36})
         lab = '快推'                              # 快拉也记作快推（lint 只认五种）
     rows.append([t, obj, act, lab, txt, f'scenes/neng_board.js · {b}'])
 # 镜头中段的口播节点：长于 3 秒的镜头，在中段下一句开头补一次快推（推得已经较近就快拉回来）
@@ -167,7 +167,7 @@ zs = []
 for e in sorted(events, key=lambda e: e['at']):
     pass
 def zoom_at(t):
-    z = 1.12
+    z = 1.06
     for e in sorted(events, key=lambda e: e['at']):
         if e['at'] > t: break
         if e['kind'] == 'to': z = e['z']
@@ -181,7 +181,7 @@ for k in range(len(rows)):
     if not cand: continue
     tm = min(cand, key=lambda x: abs(x - (a0 + a1) / 2))
     z = zoom_at(tm)
-    extra.append({'at': round(tm - 0.1, 3), 'kind': 'punch', 'k': 0.18 if z < 1.38 else -0.16})
+    extra.append({'at': round(tm - 0.1, 3), 'kind': 'punch', 'k': 0.18 if z < 1.3 else -0.16})
 events += extra
 print('补节点快推', len(extra))
 fmt = lambda x: f'{x:.1f}'

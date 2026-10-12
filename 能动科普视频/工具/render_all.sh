@@ -10,6 +10,6 @@ for i in 0 1 2 3; do a=$(( C * i )); b=$(( C * (i + 1) )); [ $b -gt $F ] && b=$F
 wait
 cd $P/渲染/段; for i in 0 1 2 3; do printf "file 'p%d.mp4'\n" $i; done > list.txt
 ffmpeg -v error -y -f concat -safe 0 -i list.txt -c copy ../成片_无声.mp4
-cd ..; ffmpeg -v error -y -i 成片_无声.mp4 -i ../音频/口播.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -af apad -shortest 成片_口播.mp4
+cd ..; ffmpeg -v error -y -i 成片_无声.mp4 -i ../音频/口播_终.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -af apad -shortest 成片_口播.mp4
 echo "帧数目标 $F"; ffprobe -v error -count_packets -show_entries stream=nb_read_packets -of csv=p=0 成片_无声.mp4
 cd /home/user/Claude/.claude/skills/huashu-art-motion && uv run -q scripts/film_gate.py $P/渲染/成片_口播.mp4 2>&1 | grep -E "门禁|结论|最差|黄灯|  - "
