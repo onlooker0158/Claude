@@ -138,7 +138,7 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
     p = POS[b]; kind = cam[0]
     if kind == 'pan' and len(cam) == 1:
         cx, cy = world(b, min(p['w'], 1600) / 2 if p['w'] <= 1600 else 800, 430)
-        events.append({'at': at, 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.2, 'dur': 0.32}); cur_z = 1.2; lab = '横移'
+        events.append({'at': round(max(0, t - 0.62), 3), 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.2, 'dur': 0.6}); cur_z = 1.2; lab = '横移'
     elif kind == 'pan':
         x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'pan', 'x': x, 'y': y}); lab = '横移'
     elif kind == 'punch':
