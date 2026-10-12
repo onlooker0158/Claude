@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 TL = json.loads((ROOT / '音频' / '时间轴.json').read_text())
 IT = TL['items']
 S = lambda i: IT[i]['t0']
-TAIL = 4.6                                   # 最后一句之后：拉远看全貌＋粉笔放下
+TAIL = 3.8                                   # 最后一句之后：拉远看全貌＋粉笔放下
 TOTAL = round(TL['total'] + TAIL - 1.2, 2)
 
 # ---------- 黑板上的板块：一行一节，块宽默认 1600，块间留 200 ----------
@@ -26,6 +26,13 @@ for r, row in enumerate(ROWS):
         name, w = (b if isinstance(b, tuple) else (b, 1600))
         POS[name] = {'x': x, 'y': r * (BH + ROWGAP), 'w': w, 'h': BH}
         x += w + GAP
+ROWW = {}
+for r, row in enumerate(ROWS):
+    names = [b[0] if isinstance(b, tuple) else b for b in row]; ROWW[r] = POS[names[-1]]['x'] + POS[names[-1]]['w']
+MAXW = max(ROWW.values())
+for r, row in enumerate(ROWS):
+    for b in row:
+        POS[b[0] if isinstance(b, tuple) else b]['x'] += (MAXW - ROWW[r]) // 2
 BOARD = {'w': max(p['x'] + p['w'] for p in POS.values()), 'h': len(ROWS) * (BH + ROWGAP) - ROWGAP}
 
 # ---------- 镜头：(起点句号或秒, 板块, 相机, 物, 动作, 屏上字) ----------
@@ -138,7 +145,7 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
     p = POS[b]; kind = cam[0]
     if kind == 'pan' and len(cam) == 1:
         cx, cy = world(b, min(p['w'], 1600) / 2 if p['w'] <= 1600 else 800, 430)
-        events.append({'at': round(max(0, t - 0.62), 3), 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.2, 'dur': 0.6}); cur_z = 1.2; lab = '横移'
+        events.append({'at': round(max(0, t - 0.62), 3), 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.12, 'dur': 0.6}); cur_z = 1.12; lab = '横移'
     elif kind == 'pan':
         x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'pan', 'x': x, 'y': y}); lab = '横移'
     elif kind == 'punch':
@@ -151,7 +158,7 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
         if k == len(SHOTS) - 1:
             events.append({'at': at, 'kind': 'to', 'x': BOARD['w'] / 2, 'y': BOARD['h'] / 2 + 120, 'z': round(min(1920 / (BOARD['w'] + 400), 1080 / (BOARD['h'] + 700)), 4), 'dur': 1.6})
         else:
-            cx, cy = world(b, 800, 430); events.append({'at': at, 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.2, 'dur': 0.36})
+            cx, cy = world(b, 800, 430); events.append({'at': at, 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.12, 'dur': 0.36})
         lab = '快推'                              # 快拉也记作快推（lint 只认五种）
     rows.append([t, obj, act, lab, txt, f'scenes/neng_board.js · {b}'])
 fmt = lambda x: f'{x:.1f}'

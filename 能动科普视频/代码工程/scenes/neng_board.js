@@ -9,13 +9,13 @@ SCENES['neng_board'] = (() => {
   const S = i => N.items[i][0], E = i => N.items[i][1];
   const st = t => MO.step(t, 24);                        // 粉笔笔画按 24fps 一顿一顿长出来
   const st12 = t => MO.step(t, 12);                      // 物件动作（骰子、小车、转轮）12fps
-  const camAt = t => CAM.track({ x: N.pos.b_dice.x + 800, y: N.pos.b_dice.y + 430, z: 1.2 }, N.cam, t);
+  const camAt = t => CAM.track({ x: N.pos.b_dice.x + 800, y: N.pos.b_dice.y + 430, z: 1.12 }, N.cam, t);
 
   // ---------- 黑板底：世界坐标里的平铺纹理 ----------
   const boardTile = () => P.cached('nb_tile', 1024, 1024, (g) => {
     g.fillStyle = BG; g.fillRect(0, 0, 1024, 1024);
     const r = rng(31); g.lineCap = 'round';
-    for (let i = 0; i < 18; i++) { g.globalAlpha = .008 + r() * .012; g.strokeStyle = '#fff'; g.lineWidth = 50 + r() * 110; const x = r() * 1024, y = r() * 1024; g.beginPath(); g.arc(x, y, 160 + r() * 260, r() * 6, r() * 6 + 1.1); g.stroke(); }
+    for (let i = 0; i < 18; i++) { g.globalAlpha = .006 + r() * .01; g.strokeStyle = '#fff'; g.lineWidth = 50 + r() * 110; const x = r() * 1024, y = r() * 1024, rr = 160 + r() * 260, a0 = r() * 6; for (const ox of [-1024, 0, 1024]) for (const oy of [-1024, 0, 1024]) { g.beginPath(); g.arc(x + ox, y + oy, rr, a0, a0 + 1.1); g.stroke(); } }
     g.globalAlpha = 1;
     const id = g.getImageData(0, 0, 1024, 1024), d = id.data;
     for (let k = 0; k < d.length; k += 4) { const n = (r() - .5) * 10; d[k] += n; d[k + 1] += n; d[k + 2] += n; }
@@ -133,7 +133,7 @@ SCENES['neng_board'] = (() => {
       if (open > 0) K.hatch(x0, y0, w, h, S(9) + .2, .4, { a: .28, col: SUB });
       K.line([[x0, y0], [x0 + dw, y0 + 30 * open], [x0 + dw, y0 + h - 30 * open], [x0, y0 + h], [x0, y0]], S(8) + .3, .6, { w: 7, seed: 9 });
       K.dot(x0 + dw - 34 * Math.cos(open * 1.25), y0 + h / 2, 10, S(8) + .9, { col: YEL });
-      K.text('后门儿', 800, 790, 56, S(8) + .7, { align: 'center', col: SUB });
+      K.text('后门儿', 1130, 160, 56, S(8) + .7, { align: 'center', col: SUB });
       // 说明书从门里滑出来
       if (K.t > S(9) + 1.1) { const q = U.ease.out(clamp((st12(K.t) - S(9) - 1.1) / .7)); K.at(lerp(800, 1130, q), lerp(430, 470, q), lerp(.2, -.08, q), lerp(.4, 1, q), () => {
         K.rect(-120, -160, 240, 320, S(9) + 1.1, .4, { w: 7, col: YEL }); K.text('人生', 0, -40, 64, S(9) + 1.5, { align: 'center', col: YEL, cps: 14 }); K.text('说明书', 0, 50, 64, S(9) + 1.65, { align: 'center', col: YEL, cps: 14 }); }); }
@@ -154,7 +154,7 @@ SCENES['neng_board'] = (() => {
     },
     b_ladder(K) {
       const lad = (x, base, top, t0, o = {}) => { K.line([[x, base], [x + 8, top]], t0, .3, o); K.line([[x + 100, base], [x + 108, top]], t0 + .1, .3, o); for (let y = base - 40, i = 0; y > top + 10; y -= 52, i++) K.line([[x + (base - y) / (base - top) * 8, y], [x + 100 + (base - y) / (base - top) * 8, y]], t0 + .35 + i * .04, .08, { ...o, seed: 600 + i + x }); };
-      for (let i = 0; i < 5; i++) lad(150 + i * 170, 760, 440, S(16) + .1 + i * .55, { w: 5 });
+      for (let i = 0; i < 5; i++) lad(150 + i * 170, 760, 440, S(16) - .35 + i * .55, { w: 5 });
       K.text('天经地义', 520, 380, 64, S(17) + .2, { align: 'center', col: SUB });
       const grow = K.t > S(18) + .1 ? clamp((st12(K.t) - S(18) - .1) / 1.8) : 0, top = lerp(440, 205, grow);
       K.line([[1100, 760], [1108, top]], S(16) + 2.9, .3); K.line([[1210, 760], [1218, top]], S(16) + 3.0, .3);
@@ -180,7 +180,7 @@ SCENES['neng_board'] = (() => {
     },
     b_lag(K) {
       K.arrow([300, 740], [300, 140], S(26) - .25, .5); K.arrow([300, 740], [1400, 740], S(26) + .2, .6);
-      K.text('时间', 1400, 800, 44, S(26) + .8, { align: 'right', col: SUB });
+      K.text('时间', 1380, 790, 44, S(26) + .8, { align: 'right', col: SUB });
       K.text('文化滞后', 800, 130, 64, S(26) + .5, { align: 'center', col: YEL });
       const curve = (dx) => { const pts = []; for (let i = 0; i <= 50; i++) { const x = 320 + i * 20 + dx; if (x > 1340) break; const s = 1 / (1 + Math.exp(-(i - 22) / 4)); pts.push([x, 710 - s * 480]); } return pts; };
       K.line(curve(0), S(27) + .1, 1.5, { w: 7 }); K.text('物质条件', 1080, 210, 46, S(27) + 1.2);
@@ -191,7 +191,7 @@ SCENES['neng_board'] = (() => {
     b_dna(K) {
       const ph = K.t > S(28) ? (st12(K.t) - S(28)) * .9 : 0, A = [], Bp = [];
       for (let i = 0; i <= 60; i++) { const x = 200 + i * 20, a = i * .3 + ph; A.push([x, 430 + Math.sin(a) * 150]); Bp.push([x, 430 + Math.sin(a + Math.PI) * 150]); }
-      K.line(A, S(28) + .05, 1.6, { w: 7, seed: 11 }); K.line(Bp, S(28) + .2, 1.6, { w: 7, col: SUB, seed: 12 });
+      K.line(A, S(28) - .35, 1.6, { w: 7, seed: 11 }); K.line(Bp, S(28) - .2, 1.6, { w: 7, col: SUB, seed: 12 });
       for (let i = 0; i <= 60; i += 3) K.line([A[i], Bp[i]], S(28) + .3 + i * .025, .1, { w: 4, col: SUB, seed: 900 + i });
       K.text('三大基因', 800, 140, 64, S(28) + .9, { align: 'center' });
       [['资源匮乏', 220, YEL], ['强从众', 640, ORG], ['简单模型', 1060, INK]].forEach(([s, x, c], i) => { K.hatch(x, 270, 330, 320, S(29) + i * 1.05, .5, { col: c, a: .3 }); K.text(s, x + 165, 690, 58, S(29) + .2 + i * 1.05, { align: 'center', col: c, cps: 12 }); });
@@ -217,7 +217,7 @@ SCENES['neng_board'] = (() => {
       [[1160, 535], [1250, 530], [1340, 535], [1430, 530]].forEach(([x, y], i) => { K.ell(x, y, 38, 14, S(33) + 3.4 + i * .15, .15, { w: 5, seed: 1200 + i }); K.line(P.bez([x - 30, y - 6], [x - 20, y - 50], [x + 20, y - 50], [x + 30, y - 6], 8), S(33) + 3.45 + i * .15, .12, { w: 5, seed: 1210 + i }); });
       K.text('potluck', 1290, 730, 48, S(33) + 3.5, { align: 'center', col: SUB });
       // 价签挂在泡菜罐上晃
-      if (K.t > S(34) + .2) { const a = .25 * Math.sin((st12(K.t) - S(34)) * 5) * Math.exp(-(K.t - S(34)) * .5); K.at(420, 340, a, 1, () => { K.line([[0, 0], [60, 90]], S(34) + .2, .2, { w: 4, col: SUB }); K.line([[40, 90], [220, 90], [240, 130], [220, 170], [40, 170], [40, 90]], S(34) + .4, .4, { w: 6, col: YEL }); K.text('廉价果腹', 130, 145, 40, S(34) + .8, { align: 'center', col: YEL, cps: 12 }); }); }
+      if (K.t > S(34) + .2) { const a = .25 * Math.sin((st12(K.t) - S(34)) * 5) * Math.exp(-(K.t - S(34)) * .5); K.at(420, 335, a, 1, () => { K.line([[0, 0], [50, -40]], S(34) + .2, .2, { w: 4, col: SUB }); K.line([[40, -90], [220, -90], [240, -60], [220, -30], [40, -30], [40, -90]], S(34) + .4, .4, { w: 6, col: YEL }); K.text('廉价果腹', 130, -45, 38, S(34) + .8, { align: 'center', col: YEL, cps: 12 }); }); }
       // 横幅
       K.line([[180, 120], [300, 100], [700, 130], [900, 100], [1300, 130], [1420, 110], [1420, 220], [1300, 240], [900, 210], [700, 240], [300, 210], [180, 230], [180, 120]], S(35) + .1, .8, { w: 6, col: YEL });
       K.text('民族特色', 800, 196, 72, S(35) + .9, { align: 'center', col: YEL, cps: 10 });
@@ -243,11 +243,11 @@ SCENES['neng_board'] = (() => {
       K.text('更纯粹', 800, 790, 56, S(43) + .2, { align: 'center', col: YEL });
     },
     b_risk(K) {
-      K.text('风险厌恶', 800, 120, 72, S(44) + .1, { align: 'center' });
-      coinStack(K, 450, 720, 12, S(44) + .9); coinStack(K, 1130, 720, 2, S(44) + 2.2, SUB);
-      K.text('一百万', 450, 800, 52, S(45) + .2, { align: 'center' }); K.text('一千元', 1130, 800, 52, S(46) + .2, { align: 'center', col: SUB });
-      die(K, 680, 660, 100, S(45) + .7, 2, S(45) + 1.2, S(46) - .3, { h: 60 });
-      K.line(P.bez([1090, 640], [1090, 560], [1170, 560], [1170, 640], 12), S(46) + 1.1, .35, { col: YEL, w: 7 }); K.rect(1070, 640, 120, 90, S(46) + 1.45, .4, { col: YEL, w: 7 });
+      K.text('风险厌恶', 800, 160, 72, S(44) + .1, { align: 'center' });
+      coinStack(K, 450, 680, 12, S(44) + .9); coinStack(K, 1130, 680, 2, S(44) + 2.2, SUB);
+      K.text('一百万', 450, 750, 52, S(45) + .2, { align: 'center' }); K.text('一千元', 1130, 750, 52, S(46) + .2, { align: 'center', col: SUB });
+      die(K, 680, 620, 100, S(45) + .7, 2, S(45) + 1.2, S(46) - .3, { h: 60 });
+      K.line(P.bez([1090, 600], [1090, 520], [1170, 520], [1170, 600], 12), S(46) + 1.1, .35, { col: YEL, w: 7 }); K.rect(1070, 600, 120, 90, S(46) + 1.45, .4, { col: YEL, w: 7 });
       K.text('俭 = 低风险', 800, 300, 80, S(47) + 2.6, { align: 'center', col: YEL, slam: true, cps: 30 });
       K.ell(640, 275, 58, 58, S(48) + .2, .5, { col: ORG, w: 6 });
     },
@@ -289,9 +289,9 @@ SCENES['neng_board'] = (() => {
       K.line([[560, 280], [560, 720]], S(62) - .25, .3, { w: 8 }); K.line([[440, 730], [680, 730]], S(62) + .05, .2, { w: 8 });
       let ang = 0; if (K.t > S(62) + 1.2) ang = -.22 * clamp((st12(K.t) - S(62) - 1.2) / .8); if (K.t > S(63) + .3) ang = -.22 - .16 * clamp((st12(K.t) - S(63) - .3) / .8);
       const ex = Math.cos(ang) * 300, ey = Math.sin(ang) * 300;
-      K.line([[560 - ex, 280 - ey], [560 + ex, 280 + ey]], S(62) + .3, .4, { w: 8 });
+      K.line([[560 - ex, 280 - ey], [560 + ex, 280 + ey]], S(62) - .05, .3, { w: 8 });
       const pan = (x, y, s, t0, col) => { K.line([[x - 80, y + 150], [x, y], [x + 80, y + 150]], t0, .3, { w: 4, col: SUB }); K.line(P.bez([x - 100, y + 150], [x - 80, y + 200], [x + 80, y + 200], [x + 100, y + 150], 10), t0 + .3, .2, { w: 6 }); K.text(s, x, y + 260, 52, t0 + .4, { align: 'center', col }); };
-      pan(560 - ex, 280 - ey, '态度', S(62) + .5, YEL); pan(560 + ex, 280 + ey, '结果', S(62) + .8, SUB);
+      pan(560 - ex, 280 - ey, '态度', S(62) + .2, YEL); pan(560 + ex, 280 + ey, '结果', S(62) + .35, SUB);
       K.text('态度要好', 560, 140, 56, S(63) + .2, { align: 'center', col: YEL });
       // 空转轮
       const sp = K.t > S(64) ? (st12(K.t) - S(64)) : 0, rot = sp * sp * 2.2;
@@ -321,8 +321,8 @@ SCENES['neng_board'] = (() => {
       K.ell(450, 430, 110, 110, S(71) - .2, .4, { w: 7 }); K.text('你', 450, 455, 72, S(71) + .2, { align: 'center' });
       K.ell(1650, 430, 130, 130, S(71) + .3, .4, { w: 7 }); K.text('同事', 1650, 455, 64, S(71) + .7, { align: 'center' });
       K.arrow([580, 340], [1510, 340], S(71) + .9, .5); K.text('8000', 760, 310, 60, S(71) + 1.3, { align: 'center' });
-      K.arrow([1510, 540], [580, 540], S(72) + .05, .5, { col: ORG }); K.text('7992', 1050, 620, 80, S(72) + .5, { align: 'center', col: ORG, slam: true, cps: 30 });
-      K.text('少 8 元？', 1050, 740, 56, S(73) + .1, { align: 'center', col: YEL });
+      K.arrow([1510, 540], [580, 540], S(72) + .05, .5, { col: ORG }); K.text('7992', 1050, 660, 80, S(72) + .5, { align: 'center', col: ORG, slam: true, cps: 30 });
+      K.text('少 8 元？', 1050, 770, 56, S(73) + .1, { align: 'center', col: YEL });
       // 微信方框盖在路上
       if (K.t > S(74) + .3) { const g = K.g; g.save(); g.fillStyle = BG; g.fillRect(940, 270, 220, 140); g.restore(); }
       K.rect(940, 270, 220, 140, S(74) + .3, .5, { col: YEL, w: 7 }); K.text('微信', 1050, 362, 60, S(74) + .8, { align: 'center', col: YEL });
@@ -330,7 +330,7 @@ SCENES['neng_board'] = (() => {
       K.text('手续费', 1180, 520, 40, S(75) + 1.4, { col: ORG });
       K.text('拿到 7992', 1650, 640, 48, S(76) + .2, { align: 'center', col: SUB });
       K.line([[1510, 548], [580, 548]], S(77) + .3, .6, { col: ORG, w: 12, seed: 99 });
-      K.ell(700, 430, 480, 255, S(78) + .3, 1.3, { col: YEL, w: 7, dash: [26, 14] }); K.text('外部世界', 330, 140, 64, S(78) + 1.4, { align: 'center', col: YEL });
+      K.ell(700, 400, 520, 230, S(78) + .3, 1.3, { col: YEL, w: 7, dash: [26, 14] }); K.text('外部世界', 330, 140, 64, S(78) + 1.4, { align: 'center', col: YEL });
       K.line([[620, 455], [1490, 455]], S(79) + .3, .6, { col: SUB, w: 5, dash: [16, 14] });
       K.text('信用关系', 1200, 615, 40, S(79) + 1.0, { col: ORG });
       K.text('微信的事', 1050, 240, 48, S(80) + .2, { align: 'center', col: YEL });
@@ -378,9 +378,9 @@ SCENES['neng_board'] = (() => {
       K.text('高波动世界', 1300, 110, 64, S(95) + 1.0, { align: 'center', col: ORG });
     },
     b_agent(K) {
-      K.text('能动者', 760, 220, 140, S(96) + .4, { align: 'center', col: YEL, slam: true, cps: 30 });
+      K.text('能动者', 760, 220, 140, S(96) - .2, { align: 'center', col: YEL, slam: true, cps: 30 });
       K.text('agent', 1080, 220, 56, S(96) + .9, { col: SUB });
-      K.at(760, 520, -.5, 1, () => { K.line([[-250, -20], [150, -20], [150, 20], [-250, 20], [-250, -20]], S(96) + .8, .4, { w: 7 }); K.line([[150, -20], [180, -60], [250, -60], [230, -20], [270, 0], [230, 20], [250, 60], [180, 60], [150, 20]], S(96) + 1.2, .4, { w: 7 }); });
+      K.at(760, 520, -.5, 1, () => { K.line([[-250, -20], [150, -20], [150, 20], [-250, 20], [-250, -20]], S(96) + .3, .4, { w: 7 }); K.line([[150, -20], [180, -60], [250, -60], [230, -20], [270, 0], [230, 20], [250, 60], [180, 60], [150, 20]], S(96) + .7, .4, { w: 7 }); });
       K.arrow([1350, 660], [1060, 560], S(96) + 1.8, .4, { col: YEL, w: 7 });
       K.text('你是调用工具的人', 1450, 420, 48, S(97) + .1, { align: 'right', col: YEL, cps: 10 });
       K.text('不能是别人的工具', 1450, 500, 48, S(97) + 1.5, { align: 'right', col: ORG, cps: 10 });
@@ -417,7 +417,7 @@ SCENES['neng_board'] = (() => {
         g.fillStyle = '#5a4430'; g.fillRect(bx0 - 60, by0 - 60, bw + 120, bh + 220);
         g.fillStyle = PAT; g.fillRect(Math.max(bx0, vx - 10), Math.max(by0, vy - 10), Math.min(bw, vw + 20), Math.min(bh, vh + 20));
         g.fillStyle = '#6e5540'; g.fillRect(bx0 - 60, by0 + bh, bw + 120, 40);
-        if (z < 0.5) { g.fillStyle = '#f4f1e6'; g.fillRect(N.board.w * .7, by0 + bh + 6, 220, 30); g.fillStyle = YEL; g.fillRect(N.board.w * .7 + 300, by0 + bh + 8, 140, 28); }
+        if (z < 0.5) { g.fillStyle = YEL; g.fillRect(N.board.w * .7 + 300, by0 + bh + 8, 140, 28); g.fillStyle = '#2b2b2b'; g.fillRect(N.board.w * .3, by0 + bh + 4, 300, 34); }
       });
       // 粉笔层
       const L = P.scratch('nbChalk'), g = L.getContext('2d'); g.reset();
@@ -432,14 +432,15 @@ SCENES['neng_board'] = (() => {
       let tipW = null; if (tips.length) { tips.sort((a, b) => (b.live - a.live) || (b.t0 - a.t0)); tipW = tips[0]; }
       const endT = N.total - 2.2;
       if (t > endT) {                                         // 结尾：粉笔落进画面底部，躺平
-        const q = clamp((st12(t) - endT) / .5), x = 1500, y = lerp(700, 1000, q * q), a = lerp(-.7, -.05, q);
+        const [tx, ty] = CAM.toScreen(cam, N.board.w * .55, N.board.h + 120 + 18), q = clamp((st12(t) - endT) / .6), x = lerp(tx - 40, tx, q), y = lerp(ty - 420, ty, q * q), a = lerp(-.7, 0, q);
         chalk(c, x, y, a);
       } else if (tipW) { const sx = tipW.sx, sy = tipW.sy; if (sx > -100 && sx < W + 100 && sy > -100 && sy < H + 100) chalk(c, sx, sy, -.75); }
       // 字幕
       const sub = N.subs.find(s => t >= s.t0 && t < s.t1);
-      if (sub) { c.save(); c.font = '44px "PuHui-Medium"'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-        let lines = [sub.text]; if (c.measureText(sub.text).width > 1500) { const m = Math.ceil(sub.text.length / 2); let cut = sub.text.lastIndexOf('，', m + 4); if (cut < 6) cut = m - 1; lines = [sub.text.slice(0, cut + 1), sub.text.slice(cut + 1)]; }
-        lines.forEach((s, i) => { const y = 1040 - (lines.length - 1 - i) * 58; c.lineWidth = 8; c.strokeStyle = 'rgba(16,22,19,.85)'; c.lineJoin = 'round'; c.strokeText(s, W / 2, y); c.fillStyle = '#F7F5EE'; c.fillText(s, W / 2, y); });
+      if (sub) { c.save(); c.font = '48px "PuHui-Medium"'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+        let lines = [sub.text]; if (c.measureText(sub.text).width > 1500) { const m = Math.ceil(sub.text.length / 2); let cut = -1; for (const ch of '，、：；') { const k = sub.text.lastIndexOf(ch, m + 4); if (k > cut) cut = k; } if (cut < 6) cut = m - 1; lines = [sub.text.slice(0, cut + 1), sub.text.slice(cut + 1)]; }
+        const bw = Math.max(...lines.map(l => c.measureText(l).width)) + 56, bh = lines.length * 62 + 18; c.fillStyle = 'rgba(14,20,17,.72)'; c.beginPath(); c.roundRect(W / 2 - bw / 2, 1058 - bh, bw, bh, 10); c.fill();
+        lines.forEach((s, i) => { const y = 1040 - (lines.length - 1 - i) * 62; c.lineWidth = 8; c.strokeStyle = 'rgba(16,22,19,.85)'; c.lineJoin = 'round'; c.strokeText(s, W / 2, y); c.fillStyle = '#F7F5EE'; c.fillText(s, W / 2, y); });
         c.restore(); }
     },
   };
