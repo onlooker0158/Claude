@@ -24,14 +24,19 @@ SCENES['neng_board'] = (() => {
   const holesTile = () => P.cached('nb_holes', 512, 512, (h) => { const r = rng(4); h.fillStyle = '#000'; for (let i = 0; i < 26000; i++) { h.globalAlpha = .2 + r() * .65; h.fillRect(r() * 512, r() * 512, 1 + r() * 2.2, 1 + r() * 1.2); } });
   // 半擦掉的旧板书：板擦来回擦过的雾痕＋没擦干净的旧线（低透明度，世界坐标平铺，标记离开 tile 边缘，拼接无缝）
   const ghostTile = () => P.cached('nb_ghost', 2048, 2048, (g) => {
-    const r = rng(77), T = 2048; g.filter = 'blur(5px)'; g.strokeStyle = '#e8ecdf'; g.lineCap = 'round';
-    for (let i = 0; i < 26; i++) {            // 板擦擦痕：一把板擦来回擦出的一束平行细条纹，整束离开 tile 边缘
+    const r = rng(77), T = 2048; g.strokeStyle = '#e8ecdf'; g.lineCap = 'round';
+    for (let i = 0; i < 36; i++) {            // 板擦擦痕：一束平行细条纹，整束离开 tile 边缘
       const L = 140 + r() * 200, x = L + 80 + r() * (T - 2 * L - 160), y = 160 + r() * (T - 320), a = (r() - .5) * .35;
       g.save(); g.translate(x, y); g.rotate(a);
-      for (let k = 0; k < 16; k++) { g.globalAlpha = .018 + r() * .03; g.lineWidth = 3 + r() * 5; const yy = k * 6 - 48, l = L * (.7 + r() * .3);
-        g.beginPath(); g.moveTo(-l, yy); g.quadraticCurveTo(0, yy + (r() - .5) * 10, l, yy + (r() - .5) * 6); g.stroke(); }
+      for (let k = 0; k < 14; k++) { g.globalAlpha = .025 + r() * .03; g.lineWidth = 2 + r() * 4; const yy = k * 7 - 48, l = L * (.6 + r() * .4), o = (r() - .5) * 60;
+        g.beginPath(); g.moveTo(-l + o, yy); g.quadraticCurveTo(o, yy + (r() - .5) * 10, l + o, yy + (r() - .5) * 6); g.stroke(); }
       g.restore(); }
-    g.filter = 'none'; g.globalAlpha = 1;
+    for (let i = 0; i < 90; i++) {            // 没擦干净的旧线：下划线、箭杆的残段（断断续续，不成形）
+      const x = 200 + r() * (T - 400), y = 200 + r() * (T - 400), a = (r() - .5) * .9, L = 40 + r() * 160;
+      g.save(); g.translate(x, y); g.rotate(a); g.globalAlpha = .06 + r() * .05; g.lineWidth = 4 + r() * 3;
+      let px = -L; while (px < L) { const seg = 10 + r() * 40; g.beginPath(); g.moveTo(px, (r() - .5) * 3); g.lineTo(Math.min(L, px + seg), (r() - .5) * 3); g.stroke(); px += seg + 4 + r() * 14; }
+      g.restore(); }
+    g.globalAlpha = 1;
   });
   let PAT = null, HPAT = null, GPAT = null;
 

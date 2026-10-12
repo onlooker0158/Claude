@@ -149,7 +149,7 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
     elif kind == 'pan':
         x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'pan', 'x': x, 'y': y}); lab = '横移'
     elif kind == 'punch':
-        x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'punch', 'k': round(cam[3] * .85, 3), 'x': x, 'y': y + 20}); cur_z *= 1 + cam[3] * .85; lab = '快推'
+        x, y = world(b, cam[1], cam[2]); kk = max(cam[3], .22) if cam[3] > 0 else cam[3]; events.append({'at': at, 'kind': 'punch', 'k': kk, 'x': x, 'y': y + 20}); cur_z *= 1 + kk; lab = '快推'
     elif kind == 'slam':
         events.append({'at': round(t, 3), 'kind': 'slam'}); lab = '砸入'
     elif kind == 'stay':
@@ -181,7 +181,7 @@ for k in range(len(rows)):
     if not cand: continue
     tm = min(cand, key=lambda x: abs(x - (a0 + a1) / 2))
     z = zoom_at(tm)
-    extra.append({'at': round(tm - 0.1, 3), 'kind': 'punch', 'k': 0.18 if z < 1.3 else -0.16})
+    extra.append({'at': round(tm - 0.1, 3), 'kind': 'punch', 'k': 0.22 if z < 1.3 else -0.18})
 events += extra
 print('补节点快推', len(extra))
 fmt = lambda x: f'{x:.1f}'
