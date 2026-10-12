@@ -6,3 +6,7 @@
 !代码工程/scenes/
 代码工程/scenes/*
 !代码工程/scenes/dir*.js
+!代码工程/eras_neng.js
+!代码工程/neng_shots.js
+!代码工程/scenes/neng_board.js
+渲染/
