@@ -22,7 +22,19 @@ SCENES['neng_board'] = (() => {
     g.putImageData(id, 0, 0);
   });
   const holesTile = () => P.cached('nb_holes', 512, 512, (h) => { const r = rng(4); h.fillStyle = '#000'; for (let i = 0; i < 26000; i++) { h.globalAlpha = .2 + r() * .65; h.fillRect(r() * 512, r() * 512, 1 + r() * 2.2, 1 + r() * 1.2); } });
-  let PAT = null, HPAT = null;
+  // 半擦掉的旧板书：板擦来回擦过的雾痕＋没擦干净的旧线（低透明度，世界坐标平铺，标记离开 tile 边缘，拼接无缝）
+  const ghostTile = () => P.cached('nb_ghost', 1536, 1536, (g) => {
+    const r = rng(77), T = 1536; g.lineCap = 'round'; g.lineJoin = 'round';
+    for (let i = 0; i < 22; i++) {            // 板擦擦痕：一组平行的宽弧带
+      const x = 200 + r() * (T - 400), y = 200 + r() * (T - 400), L = 160 + r() * 220, a = (r() - .5) * .5;
+      g.save(); g.translate(x, y); g.rotate(a); g.globalAlpha = .022 + r() * .025; g.fillStyle = '#e8ecdf';
+      for (let k = 0; k < 4; k++) { g.beginPath(); g.ellipse(0, k * 26 - 40, L, 16 + r() * 10, 0, 0, 7); g.fill(); } g.restore(); }
+    for (let i = 0; i < 40; i++) {            // 旧线：圈、横线（没擦干净的痕迹，不写字）
+      const x = 150 + r() * (T - 300), y = 150 + r() * (T - 300); g.globalAlpha = .06 + r() * .05; g.strokeStyle = '#e8ecdf'; g.lineWidth = 4 + r() * 3;
+      g.beginPath(); const k = r(); if (k < .4) { g.arc(x, y, 30 + r() * 60, r() * 6, r() * 6 + 2 + r() * 3); } else { g.moveTo(x, y); g.lineTo(x + (r() - .5) * 360, y + (r() - .5) * 120); } g.stroke(); }
+    g.globalAlpha = 1;
+  });
+  let PAT = null, HPAT = null, GPAT = null;
 
   // ---------- 粉笔笔画库 ----------
   // 每个图元：t0 起、dur 内画完；记录「正在画的笔尖」给粉笔头用
@@ -34,7 +46,7 @@ SCENES['neng_board'] = (() => {
       p: (t0, dur) => clamp((st(t) - t0) / dur),
       line(pts, t0, dur = 0.6, o = {}) {
         if (t < t0) return; const all = resample(pts), q = K.p(t0, dur), n = Math.max(2, Math.ceil(all.length * q));
-        g.save(); g.strokeStyle = o.col || INK; g.lineWidth = o.w || 6; g.lineCap = 'round'; g.lineJoin = 'round'; g.globalAlpha = o.a ?? 1;
+        g.save(); g.strokeStyle = o.col || INK; g.lineWidth = (o.w || 6) * 1.25; g.lineCap = 'round'; g.lineJoin = 'round'; g.globalAlpha = o.a ?? 1;
         if (o.dash) g.setLineDash(o.dash);
         P.roughPath(g, all.slice(0, n), { amp: o.amp ?? 1.4, seed: o.seed || (pts.length * 7 + (pts[0][0] | 0)), step: 5 }); g.stroke(); g.restore();
         const e = all[n - 1]; tip(e[0], e[1], t0, dur);
@@ -411,11 +423,12 @@ SCENES['neng_board'] = (() => {
       const vw = W / z, vh = H / z, vx = cam.x - vw / 2, vy = cam.y - vh / 2;
       // 墙＋黑板（含木框和粉笔槽，拉远才看得见）
       c.fillStyle = '#2b241d'; c.fillRect(0, 0, W, H);
-      if (!PAT) { PAT = c.createPattern(boardTile(), 'repeat'); HPAT = c.createPattern(holesTile(), 'repeat'); }
+      if (!PAT) { PAT = c.createPattern(boardTile(), 'repeat'); HPAT = c.createPattern(holesTile(), 'repeat'); GPAT = c.createPattern(ghostTile(), 'repeat'); }
       const bx0 = -120, by0 = -120, bw = N.board.w + 240, bh = N.board.h + 240;
       CAM.with(c, cam, (g) => {
         g.fillStyle = '#5a4430'; g.fillRect(bx0 - 60, by0 - 60, bw + 120, bh + 220);
         g.fillStyle = PAT; g.fillRect(Math.max(bx0, vx - 10), Math.max(by0, vy - 10), Math.min(bw, vw + 20), Math.min(bh, vh + 20));
+        g.fillStyle = GPAT; g.fillRect(Math.max(bx0, vx - 10), Math.max(by0, vy - 10), Math.min(bw, vw + 20), Math.min(bh, vh + 20));
         g.fillStyle = '#6e5540'; g.fillRect(bx0 - 60, by0 + bh, bw + 120, 40);
         if (z < 0.5) { g.fillStyle = YEL; g.fillRect(N.board.w * .7 + 300, by0 + bh + 8, 140, 28); g.fillStyle = '#2b2b2b'; g.fillRect(N.board.w * .3, by0 + bh + 4, 300, 34); }
       });

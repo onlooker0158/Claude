@@ -161,6 +161,29 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
             cx, cy = world(b, 800, 430); events.append({'at': at, 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.12, 'dur': 0.36})
         lab = '快推'                              # 快拉也记作快推（lint 只认五种）
     rows.append([t, obj, act, lab, txt, f'scenes/neng_board.js · {b}'])
+# 镜头中段的口播节点：长于 3 秒的镜头，在中段下一句开头补一次快推（推得已经较近就快拉回来）
+starts = [r[0] for r in rows] + [TOTAL]
+zs = []
+for e in sorted(events, key=lambda e: e['at']):
+    pass
+def zoom_at(t):
+    z = 1.12
+    for e in sorted(events, key=lambda e: e['at']):
+        if e['at'] > t: break
+        if e['kind'] == 'to': z = e['z']
+        elif e['kind'] == 'punch': z *= 1 + e['k']
+    return z
+extra = []
+for k in range(len(rows)):
+    a0, a1 = starts[k], starts[k + 1]
+    if a1 - a0 < 3.0 or k == len(rows) - 1: continue
+    cand = [it['t0'] for it in IT if a0 + 1.0 <= it['t0'] <= a1 - 0.8]
+    if not cand: continue
+    tm = min(cand, key=lambda x: abs(x - (a0 + a1) / 2))
+    z = zoom_at(tm)
+    extra.append({'at': round(tm - 0.1, 3), 'kind': 'punch', 'k': 0.18 if z < 1.38 else -0.16})
+events += extra
+print('补节点快推', len(extra))
 fmt = lambda x: f'{x:.1f}'
 md = ['# 镜头表 · 能动：稳态生存的观念陷阱', '',
       '画风：黑板粉笔板书，一整面深绿黑板，粉笔线带颗粒，镜头在同一面板上停住→横移/快推→停住，结尾拉远看整面黑板',
