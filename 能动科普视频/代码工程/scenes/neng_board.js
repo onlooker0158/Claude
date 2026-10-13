@@ -31,10 +31,12 @@ SCENES['neng_board'] = (() => {
       for (let k = 0; k < 14; k++) { g.globalAlpha = .025 + r() * .03; g.lineWidth = 2 + r() * 4; const yy = k * (5 + r() * 5) - 48, l = L * (.5 + r() * .5), o = (r() - .5) * 90, tilt = (r() - .5) * 26;
         g.beginPath(); g.moveTo(-l + o, yy - tilt); g.quadraticCurveTo(o, yy + (r() - .5) * 24, l + o, yy + tilt); g.stroke(); }
       g.restore(); }
-    for (let i = 0; i < 90; i++) {            // 没擦干净的旧线：下划线、箭杆的残段（断断续续，不成形）
+    for (let i = 0; i < 90; i++) {            // 没擦干净的旧线：擦剩的粉笔蹭痕（断续、不成形，不是虚线）
       const x = 200 + r() * (T - 400), y = 200 + r() * (T - 400), a = (r() - .5) * .9, L = 40 + r() * 160;
-      g.save(); g.translate(x, y); g.rotate(a); g.globalAlpha = .06 + r() * .05; g.lineWidth = 4 + r() * 3;
-      g.beginPath(); g.moveTo(-L, (r() - .5) * 4); g.quadraticCurveTo(0, (r() - .5) * 14, L, (r() - .5) * 4); g.stroke();
+      g.save(); g.translate(x, y); g.rotate(a);
+      let px = -L, py = 0; while (px < L) { const seg = 6 + r() * 26, ang = (r() - .5) * .5, y2 = py + Math.sin(ang) * seg;   // 擦剩的粉笔蹭痕：长短、角度、浓淡都不齐
+        g.globalAlpha = .05 + r() * .08; g.lineWidth = 3 + r() * 4; g.beginPath(); g.moveTo(px, py); g.lineTo(Math.min(L, px + seg), y2); g.stroke();
+        px += seg + 3 + r() * 22; py = clamp(y2 + (r() - .5) * 8, -12, 12); }
       g.restore(); }
     g.globalAlpha = 1;
   });
