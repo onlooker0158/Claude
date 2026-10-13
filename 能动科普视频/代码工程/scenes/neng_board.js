@@ -173,7 +173,7 @@ SCENES['neng_board'] = (() => {
     b_ladder(K) {
       const lad = (x, base, top, t0, o = {}) => { K.line([[x, base], [x + 8, top]], t0, .3, o); K.line([[x + 100, base], [x + 108, top]], t0 + .1, .3, o); for (let y = base - 40, i = 0; y > top + 10; y -= 52, i++) K.line([[x + (base - y) / (base - top) * 8, y], [x + 100 + (base - y) / (base - top) * 8, y]], t0 + .35 + i * .04, .08, { ...o, seed: 600 + i + x }); };
       for (let i = 0; i < 5; i++) lad(150 + i * 170, 760, 440, S(16) - .35 + i * .55, { w: 5 });
-      K.text('天经地义', 520, 380, 64, S(17) + .2, { align: 'center', col: SUB });
+      K.text('天经地义', 720, 380, 64, S(17) + .2, { align: 'center', col: SUB });
       const grow = K.t > S(18) + .1 ? clamp((st12(K.t) - S(18) - .1) / 1.8) : 0, top = lerp(440, 250, grow);
       K.line([[1100, 760], [1108, top]], S(16) + 2.9, .3); K.line([[1210, 760], [1218, top]], S(16) + 3.0, .3);
       for (let y = 720, i = 0; y > top + 10; y -= 52, i++) K.line([[1100, y], [1210, y]], S(16) + 3.3, .08, { w: 6, seed: 700 + i });
@@ -340,7 +340,7 @@ SCENES['neng_board'] = (() => {
       K.ell(1650, 430, 130, 130, S(71) + .3, .4, { w: 7 }); K.text('同事', 1650, 455, 64, S(71) + .7, { align: 'center' });
       K.arrow([580, 340], [1510, 340], S(71) + .9, .5); K.text('8000', 760, 310, 60, S(71) + 1.3, { align: 'center' });
       K.arrow([1510, 540], [580, 540], S(72) + .05, .5, { col: ORG }); K.text('7992', 1050, 660, 80, S(72) + .5, { align: 'center', col: ORG, slam: true, cps: 30 });
-      K.text('少 8 元？', 1220, 660, 48, S(73) + .1, { align: 'center', col: YEL });
+      K.text('少 8 元？', 1280, 660, 48, S(73) + .1, { align: 'center', col: YEL });
       // 微信方框盖在路上
       if (K.t > S(74) + .3) { const g = K.g; g.save(); g.fillStyle = BG; g.fillRect(940, 270, 220, 140); g.restore(); }
       K.rect(940, 270, 220, 140, S(74) + .3, .5, { col: YEL, w: 7 }); K.text('微信', 1050, 362, 60, S(74) + .8, { align: 'center', col: YEL });
@@ -348,7 +348,7 @@ SCENES['neng_board'] = (() => {
       K.text('手续费', 1190, 515, 40, S(75) + 1.4, { col: ORG });
       K.text('拿到 7992', 1650, 640, 48, S(76) + .2, { align: 'center', col: SUB });
       K.line([[1510, 548], [580, 548]], S(77) + .3, .6, { col: ORG, w: 12, seed: 99 });
-      K.ell(700, 405, 470, 160, S(78) + .3, 1.3, { col: YEL, w: 7, dash: [26, 14] }); K.text('外部世界', 330, 140, 64, S(78) + 1.4, { align: 'center', col: YEL });
+      K.ell(700, 380, 600, 230, S(78) + .3, 1.3, { col: YEL, w: 7, dash: [26, 14] }); K.text('外部世界', 570, 130, 64, S(78) + 1.4, { align: 'center', col: YEL });
       K.line([[620, 455], [1490, 455]], S(79) + .3, .6, { col: SUB, w: 5, dash: [16, 14] });
       K.text('信用关系', 600, 610, 40, S(79) + 1.0, { col: ORG });
       K.text('微信的事', 1050, 240, 48, S(80) + .2, { align: 'center', col: YEL });
@@ -364,7 +364,7 @@ SCENES['neng_board'] = (() => {
     },
     b_metric(K) {
       K.rect(220, 200, 470, 290, S(84) - .25, .6, { w: 7 }); K.ell(220, 345, 26, 150, S(84) + .3, .3, { w: 6 }); K.ell(690, 345, 26, 150, S(84) + .5, .3, { w: 6 });
-      K.text('指标主义', 455, 140, 56, S(84) + .6, { align: 'center' });
+      K.text('指标主义', 455, 172, 56, S(84) + .6, { align: 'center' });
       K.text('985', 455, 400, 130, S(85) + .2, { align: 'center', col: YEL, cps: 6 });
       K.arrow([455, 510], [455, 610], S(85) + 1.0, .3); K.text('高薪', 455, 690, 64, S(85) + 1.3, { align: 'center' });
       K.at(1100, 360, -.06, 1, () => { K.rect(-210, -150, 420, 300, S(86) - .25, .5, { w: 6 }); K.text('欠  条', 0, -70, 48, S(86) + .2, { align: 'center', col: SUB }); K.text('世界欠我的', 0, 30, 60, S(86) + .6, { align: 'center' }); });
