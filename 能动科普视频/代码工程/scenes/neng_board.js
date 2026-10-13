@@ -34,9 +34,9 @@ SCENES['neng_board'] = (() => {
     for (let i = 0; i < 90; i++) {            // 没擦干净的旧线：擦剩的粉笔蹭痕（断续、不成形，不是虚线）
       const x = 200 + r() * (T - 400), y = 200 + r() * (T - 400), a = (r() - .5) * .9, L = 40 + r() * 160;
       g.save(); g.translate(x, y); g.rotate(a);
-      let px = -L, py = 0; while (px < L) { const seg = 6 + r() * 26, ang = (r() - .5) * .5, y2 = py + Math.sin(ang) * seg;   // 擦剩的粉笔蹭痕：长短、角度、浓淡都不齐
-        g.globalAlpha = .05 + r() * .08; g.lineWidth = 3 + r() * 4; g.beginPath(); g.moveTo(px, py); g.lineTo(Math.min(L, px + seg), y2); g.stroke();
-        px += seg + 3 + r() * 22; py = clamp(y2 + (r() - .5) * 8, -12, 12); }
+      let px = -L, py = 0; while (px < L) { const seg = 10 + r() * 40, ang = (r() - .5) * .3, y2 = py + Math.sin(ang) * seg;   // 擦剩的粉笔蹭痕：长短、角度、浓淡都不齐
+        g.globalAlpha = .06 + r() * .06; g.lineWidth = 4 + r() * 3; g.beginPath(); g.moveTo(px, py); g.lineTo(Math.min(L, px + seg), y2); g.stroke();
+        px += seg + 4 + r() * 14; py = clamp(y2 + (r() - .5) * 8, -12, 12); }
       g.restore(); }
     g.globalAlpha = 1;
   });
