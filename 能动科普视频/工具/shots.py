@@ -149,7 +149,7 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
     elif kind == 'pan':
         x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'pan', 'x': x, 'y': y}); lab = '横移'
     elif kind == 'punch':
-        x, y = world(b, cam[1], cam[2]); kk = cam[3]; events.append({'at': at, 'kind': 'punch', 'k': kk, 'x': x, 'y': y + 20}); cur_z *= 1 + kk; lab = '快推'
+        x, y = world(b, cam[1], cam[2]); kk = max(cam[3], .26) if cam[3] > 0 else min(cam[3], -.2); events.append({'at': at, 'kind': 'punch', 'k': kk, 'x': x, 'y': y + 20}); cur_z *= 1 + kk; lab = '快推'
     elif kind == 'slam':
         events.append({'at': round(t, 3), 'kind': 'slam'}); lab = '砸入'
     elif kind == 'stay':
@@ -185,7 +185,7 @@ for tm in sorted(nodes):
     if any(abs(e['at'] - at) < 1.4 for e in events): continue
     z = zoom_at(at)
     # 往外拉不裁内容：在合适取景（≈1.06）时拉远一档，已经拉远就推回，推得较近就拉回
-    k = -0.2 if z > 1.0 else 0.25
+    k = -0.24 if z > 1.0 else 0.3
     events.append({'at': at, 'kind': 'punch', 'k': k}); extra += 1
 print('补节点快推', extra)
 fmt = lambda x: f'{x:.1f}'
