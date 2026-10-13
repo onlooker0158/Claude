@@ -182,7 +182,7 @@ extra = 0
 for tm in sorted(nodes):
     at = round(tm - 0.08, 3)
     if at > S(96) - 0.6: continue                      # 能动者、小诗：不再加脉冲
-    if any(abs(e['at'] - at) < 2.0 for e in events): continue
+    if any(abs(e['at'] - at) < 1.4 for e in events): continue
     z = zoom_at(at)
     # 往外拉不裁内容：在合适取景（≈1.06）时拉远一档，已经拉远就推回，推得较近就拉回
     k = -0.2 if z > 1.0 else 0.25
