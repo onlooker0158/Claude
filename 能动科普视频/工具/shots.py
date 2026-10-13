@@ -149,7 +149,7 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
     elif kind == 'pan':
         x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'pan', 'x': x, 'y': y}); lab = '横移'
     elif kind == 'punch':
-        x, y = world(b, cam[1], cam[2]); kk = max(cam[3], .26) if cam[3] > 0 else min(cam[3], -.2); events.append({'at': at, 'kind': 'punch', 'k': kk, 'x': x, 'y': y + 20}); cur_z *= 1 + kk; lab = '快推'
+        x, y = world(b, cam[1], cam[2]); kk = cam[3]; events.append({'at': at, 'kind': 'punch', 'k': kk, 'x': x, 'y': y + 20}); cur_z *= 1 + kk; lab = '快推'
     elif kind == 'slam':
         events.append({'at': round(t, 3), 'kind': 'slam'}); lab = '砸入'
     elif kind == 'stay':
@@ -181,10 +181,12 @@ last_shot = rows[-1][0]
 extra = 0
 for tm in sorted(nodes):
     at = round(tm - 0.08, 3)
-    if at > last_shot - 1.0: continue
-    if any(abs(e['at'] - at) < 0.9 for e in events): continue
+    if at > S(96) - 0.6: continue                      # 能动者、小诗：不再加脉冲
+    if any(abs(e['at'] - at) < 2.0 for e in events): continue
     z = zoom_at(at)
-    events.append({'at': at, 'kind': 'punch', 'k': 0.28 if z < 1.3 else -0.22}); extra += 1
+    # 往外拉不裁内容：在合适取景（≈1.06）时拉远一档，已经拉远就推回，推得较近就拉回
+    k = -0.2 if z > 1.0 else 0.25
+    events.append({'at': at, 'kind': 'punch', 'k': k}); extra += 1
 print('补节点快推', extra)
 fmt = lambda x: f'{x:.1f}'
 md = ['# 镜头表 · 能动：稳态生存的观念陷阱', '',

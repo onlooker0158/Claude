@@ -28,13 +28,13 @@ SCENES['neng_board'] = (() => {
     for (let i = 0; i < 36; i++) {            // 板擦擦痕：一束平行细条纹，整束离开 tile 边缘
       const L = 140 + r() * 200, x = L + 80 + r() * (T - 2 * L - 160), y = 160 + r() * (T - 320), a = (r() - .5) * .35;
       g.save(); g.translate(x, y); g.rotate(a);
-      for (let k = 0; k < 14; k++) { g.globalAlpha = .025 + r() * .03; g.lineWidth = 2 + r() * 4; const yy = k * 7 - 48, l = L * (.6 + r() * .4), o = (r() - .5) * 60;
-        g.beginPath(); g.moveTo(-l + o, yy); g.quadraticCurveTo(o, yy + (r() - .5) * 10, l + o, yy + (r() - .5) * 6); g.stroke(); }
+      for (let k = 0; k < 14; k++) { g.globalAlpha = .025 + r() * .03; g.lineWidth = 2 + r() * 4; const yy = k * (5 + r() * 5) - 48, l = L * (.5 + r() * .5), o = (r() - .5) * 90, tilt = (r() - .5) * 26;
+        g.beginPath(); g.moveTo(-l + o, yy - tilt); g.quadraticCurveTo(o, yy + (r() - .5) * 24, l + o, yy + tilt); g.stroke(); }
       g.restore(); }
     for (let i = 0; i < 90; i++) {            // 没擦干净的旧线：下划线、箭杆的残段（断断续续，不成形）
       const x = 200 + r() * (T - 400), y = 200 + r() * (T - 400), a = (r() - .5) * .9, L = 40 + r() * 160;
       g.save(); g.translate(x, y); g.rotate(a); g.globalAlpha = .06 + r() * .05; g.lineWidth = 4 + r() * 3;
-      let px = -L; while (px < L) { const seg = 10 + r() * 40; g.beginPath(); g.moveTo(px, (r() - .5) * 3); g.lineTo(Math.min(L, px + seg), (r() - .5) * 3); g.stroke(); px += seg + 4 + r() * 14; }
+      g.beginPath(); g.moveTo(-L, (r() - .5) * 4); g.quadraticCurveTo(0, (r() - .5) * 14, L, (r() - .5) * 4); g.stroke();
       g.restore(); }
     g.globalAlpha = 1;
   });
@@ -195,10 +195,10 @@ SCENES['neng_board'] = (() => {
       K.text('不一样了', 1500, 200, 56, S(25) + .3, { align: 'right', col: ORG });
     },
     b_lag(K) {
-      K.arrow([300, 740], [300, 140], S(26) - .25, .5); K.arrow([300, 740], [1400, 740], S(26) + .2, .6);
-      K.text('时间', 1380, 790, 44, S(26) + .8, { align: 'right', col: SUB });
+      K.arrow([300, 690], [300, 190], S(26) - .25, .5); K.arrow([300, 690], [1400, 690], S(26) + .2, .6);
+      K.text('时间', 1380, 745, 44, S(26) + .8, { align: 'right', col: SUB });
       K.text('文化滞后', 800, 130, 64, S(26) + .5, { align: 'center', col: YEL });
-      const curve = (dx) => { const pts = []; for (let i = 0; i <= 50; i++) { const x = 320 + i * 20 + dx; if (x > 1340) break; const s = 1 / (1 + Math.exp(-(i - 22) / 4)); pts.push([x, 710 - s * 480]); } return pts; };
+      const curve = (dx) => { const pts = []; for (let i = 0; i <= 50; i++) { const x = 320 + i * 20 + dx; if (x > 1340) break; const s = 1 / (1 + Math.exp(-(i - 22) / 4)); pts.push([x, 670 - s * 440]); } return pts; };
       K.line(curve(0), S(27) + .1, 1.5, { w: 7 }); K.text('物质条件', 1080, 210, 46, S(27) + 1.2);
       K.line(curve(330), S(27) + 1.0, 1.6, { col: ORG, w: 7 }); K.text('观念', 1350, 470, 46, S(27) + 2.4, { col: ORG });
       K.arrow([780, 470], [1050, 470], S(27) + 2.6, .35, { col: YEL, w: 6 }); K.arrow([1050, 470], [780, 470], S(27) + 2.95, .3, { col: YEL, w: 6 });
@@ -338,7 +338,7 @@ SCENES['neng_board'] = (() => {
       K.ell(1650, 430, 130, 130, S(71) + .3, .4, { w: 7 }); K.text('同事', 1650, 455, 64, S(71) + .7, { align: 'center' });
       K.arrow([580, 340], [1510, 340], S(71) + .9, .5); K.text('8000', 760, 310, 60, S(71) + 1.3, { align: 'center' });
       K.arrow([1510, 540], [580, 540], S(72) + .05, .5, { col: ORG }); K.text('7992', 1050, 660, 80, S(72) + .5, { align: 'center', col: ORG, slam: true, cps: 30 });
-      K.text('少 8 元？', 1050, 770, 56, S(73) + .1, { align: 'center', col: YEL });
+      K.text('少 8 元？', 1220, 660, 48, S(73) + .1, { align: 'center', col: YEL });
       // 微信方框盖在路上
       if (K.t > S(74) + .3) { const g = K.g; g.save(); g.fillStyle = BG; g.fillRect(940, 270, 220, 140); g.restore(); }
       K.rect(940, 270, 220, 140, S(74) + .3, .5, { col: YEL, w: 7 }); K.text('微信', 1050, 362, 60, S(74) + .8, { align: 'center', col: YEL });
@@ -348,14 +348,14 @@ SCENES['neng_board'] = (() => {
       K.line([[1510, 548], [580, 548]], S(77) + .3, .6, { col: ORG, w: 12, seed: 99 });
       K.ell(700, 405, 470, 160, S(78) + .3, 1.3, { col: YEL, w: 7, dash: [26, 14] }); K.text('外部世界', 330, 140, 64, S(78) + 1.4, { align: 'center', col: YEL });
       K.line([[620, 455], [1490, 455]], S(79) + .3, .6, { col: SUB, w: 5, dash: [16, 14] });
-      K.text('信用关系', 1200, 615, 40, S(79) + 1.0, { col: ORG });
+      K.text('信用关系', 600, 610, 40, S(79) + 1.0, { col: ORG });
       K.text('微信的事', 1050, 240, 48, S(80) + .2, { align: 'center', col: YEL });
     },
     b_effort(K) {
-      K.arrow([250, 720], [250, 150], S(81) - .25, .4); K.arrow([250, 720], [1000, 720], S(81) + .1, .4);
-      K.text('努力', 1000, 790, 48, S(81) + .5, { align: 'right', col: SUB }); K.text('回报', 280, 160, 48, S(81) + .6, { col: SUB });
-      K.line([[250, 720], [900, 220]], S(81) + 1.0, .9, { w: 8 }); K.text('线性思维', 640, 680, 48, S(81) + 1.6, { col: SUB });
-      K.text('！', 960, 260, 220, S(82) + .1, { col: ORG, slam: true, cps: 30 });
+      K.arrow([250, 680], [250, 190], S(81) - .25, .4); K.arrow([250, 680], [1000, 680], S(81) + .1, .4);
+      K.text('努力', 1000, 740, 48, S(81) + .5, { align: 'right', col: SUB }); K.text('回报', 280, 210, 48, S(81) + .6, { col: SUB });
+      K.line([[250, 680], [900, 240]], S(81) + 1.0, .9, { w: 8 }); K.text('线性思维', 640, 640, 48, S(81) + 1.6, { col: SUB });
+      K.text('！', 960, 290, 220, S(82) + .1, { col: ORG, slam: true, cps: 30 });
       K.rect(1110, 450, 280, 220, S(83) + .2, .5, { w: 7 }); K.line([[1100, 450], [1130, 330], [1400, 300], [1400, 450]], S(83) + .7, .4, { w: 7 });
       K.line([[1250, 450], [1250, 670]], S(83) + 1.1, .2, { w: 5, col: YEL }); K.text('?', 1250, 600, 120, S(83) + 1.6, { align: 'center', col: YEL });
       K.text('没有神灵发奖励', 1250, 790, 46, S(83) + 2.2, { align: 'center', col: SUB });
@@ -372,8 +372,8 @@ SCENES['neng_board'] = (() => {
       K.text('能提供什么？', 990, 800, 52, S(87) + 1.4, { align: 'center', col: YEL });
     },
     b_poster(K) {
-      K.rect(380, 110, 820, 700, S(88) - .25, .9, { w: 7 }); K.dot(400, 130, 12, S(88) + .5, { col: ORG }); K.dot(1180, 130, 12, S(88) + .55, { col: ORG });
-      ['听话', '节俭', '努力', '随大流', '从不出头'].forEach((s, i) => { const y = 340 + i * 90; K.rect(450, y - 45, 50, 50, S(88) + .2 + i * .5, .2, { w: 5, seed: 2100 + i }); K.text(s, 530, y, 52, S(88) + .3 + i * .5, { cps: 14 }); K.check(475, y - 22, 26, S(88) + .5 + i * .5); });
+      K.rect(380, 110, 820, 640, S(88) - .25, .9, { w: 7 }); K.dot(400, 130, 12, S(88) + .5, { col: ORG }); K.dot(1180, 130, 12, S(88) + .55, { col: ORG });
+      ['听话', '节俭', '努力', '随大流', '从不出头'].forEach((s, i) => { const y = 330 + i * 82; K.rect(450, y - 45, 50, 50, S(88) + .2 + i * .5, .2, { w: 5, seed: 2100 + i }); K.text(s, 530, y, 52, S(88) + .3 + i * .5, { cps: 14 }); K.check(475, y - 22, 26, S(88) + .5 + i * .5); });
       K.text('佃农招募', 790, 240, 80, S(89) + .4, { align: 'center', col: YEL, cps: 6 });
       ['省心', '肯干', '不闯祸'].forEach((s, i) => { K.text(s, 1260, 330 + i * 110, 52, S(90) + .1 + i * .6, { col: SUB, cps: 12 }); K.check(1440, 310 + i * 110, 26, S(90) + .4 + i * .6); });
       K.text('兴旺发达', 1260, 720, 52, S(91) - .1, { col: SUB, cps: 20 }); K.cross(1360, 700, 60, S(91) + .4, .3);
@@ -422,6 +422,8 @@ SCENES['neng_board'] = (() => {
   return {
     draw(c, lt) {
       const t = lt, cam = camAt(t), z = cam.z;
+      { const vw0 = W / z, vh0 = H / z, X0 = -120, X1 = N.board.w + 120, Y0 = -120, Y1 = N.board.h + 100;   // 取景限位：不出黑板（拉远看全貌时除外）
+        if (vw0 < X1 - X0) cam.x = clamp(cam.x, X0 + vw0 / 2, X1 - vw0 / 2); if (vh0 < Y1 - Y0) cam.y = clamp(cam.y, Y0 + vh0 / 2, Y1 - vh0 / 2); }
       // 视野对应的世界矩形
       const vw = W / z, vh = H / z, vx = cam.x - vw / 2, vy = cam.y - vh / 2;
       // 墙＋黑板（含木框和粉笔槽，拉远才看得见）
