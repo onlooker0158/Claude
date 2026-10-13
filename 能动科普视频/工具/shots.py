@@ -149,7 +149,7 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
     elif kind == 'pan':
         x, y = world(b, cam[1], cam[2]); events.append({'at': at, 'kind': 'pan', 'x': x, 'y': y}); lab = '横移'
     elif kind == 'punch':
-        x, y = world(b, cam[1], cam[2]); kk = max(cam[3], .22) if cam[3] > 0 else cam[3]; events.append({'at': at, 'kind': 'punch', 'k': kk, 'x': x, 'y': y + 20}); cur_z *= 1 + kk; lab = '快推'
+        x, y = world(b, cam[1], cam[2]); kk = max(cam[3], .26) if cam[3] > 0 else min(cam[3], -.2); events.append({'at': at, 'kind': 'punch', 'k': kk, 'x': x, 'y': y + 20}); cur_z *= 1 + kk; lab = '快推'
     elif kind == 'slam':
         events.append({'at': round(t, 3), 'kind': 'slam'}); lab = '砸入'
     elif kind == 'stay':
@@ -161,11 +161,8 @@ for k, (start, b, cam, obj, act, txt) in enumerate(SHOTS):
             cx, cy = world(b, 800, 450); events.append({'at': at, 'kind': 'to', 'x': cx, 'y': cy, 'z': 1.06, 'dur': 0.36})
         lab = '快推'                              # 快拉也记作快推（lint 只认五种）
     rows.append([t, obj, act, lab, txt, f'scenes/neng_board.js · {b}'])
-# 镜头中段的口播节点：长于 3 秒的镜头，在中段下一句开头补一次快推（推得已经较近就快拉回来）
-starts = [r[0] for r in rows] + [TOTAL]
-zs = []
-for e in sorted(events, key=lambda e: e['at']):
-    pass
+# 口播节点的脉冲：每句开头、长句里的逗号处各一次「快推/快拉」（离已有镜头动作不到 0.9 秒就跳过）。
+# 推近和拉回按当前倍数交替，镜头在 1.06–1.45 倍之间来回，不越推越大。
 def zoom_at(t):
     z = 1.06
     for e in sorted(events, key=lambda e: e['at']):
@@ -173,17 +170,22 @@ def zoom_at(t):
         if e['kind'] == 'to': z = e['z']
         elif e['kind'] == 'punch': z *= 1 + e['k']
     return z
-extra = []
-for k in range(len(rows)):
-    a0, a1 = starts[k], starts[k + 1]
-    if a1 - a0 < 3.0 or k == len(rows) - 1: continue
-    cand = [it['t0'] for it in IT if a0 + 1.0 <= it['t0'] <= a1 - 0.8]
-    if not cand: continue
-    tm = min(cand, key=lambda x: abs(x - (a0 + a1) / 2))
-    z = zoom_at(tm)
-    extra.append({'at': round(tm - 0.1, 3), 'kind': 'punch', 'k': 0.22 if z < 1.3 else -0.18})
-events += extra
-print('补节点快推', len(extra))
+nodes = []
+for it in IT:
+    nodes.append(it['t0'])
+    dur, txt = it['t1'] - it['t0'], it['text']
+    if dur > 2.8:
+        for ci, ch in enumerate(txt[:-2]):
+            if ch in '，、：' and 4 <= ci: nodes.append(it['t0'] + dur * (ci + 1) / len(txt))
+last_shot = rows[-1][0]
+extra = 0
+for tm in sorted(nodes):
+    at = round(tm - 0.08, 3)
+    if at > last_shot - 1.0: continue
+    if any(abs(e['at'] - at) < 0.9 for e in events): continue
+    z = zoom_at(at)
+    events.append({'at': at, 'kind': 'punch', 'k': 0.28 if z < 1.3 else -0.22}); extra += 1
+print('补节点快推', extra)
 fmt = lambda x: f'{x:.1f}'
 md = ['# 镜头表 · 能动：稳态生存的观念陷阱', '',
       '画风：黑板粉笔板书，一整面深绿黑板，粉笔线带颗粒，镜头在同一面板上停住→横移/快推→停住，结尾拉远看整面黑板',
