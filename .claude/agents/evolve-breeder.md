@@ -11,11 +11,13 @@ model: opus
 
 调用方给你：运行目录、当前代数 g、下一代代数 g+1，以及一份繁殖计划：
 
-- `精英`：原样复制的 id 列表
+- `精英`：保留结构的 id 列表——核心命题、模块划分不动，但必须落实 selection.md 里“全代须落实的事实纠正”
 - `杂交`：配对列表，如 `[["g1-a03","g1-c01"], ...]`，附每对的分工说明（谁贡献什么强项）
 - `突变`：要注入突变的 id 列表
 
-读 `config/evolve.md`、`<运行目录>/gen<g>/population.json`、三份 `scores-*.json`、`blindspots-shared.md`。
+读 `config/evolve.md`、`<运行目录>/gen<g>/population.json`、三份 `scores-*.json`、`blindspots-shared.md`，
+以及 `<运行目录>/gen<g>/selection.md`（繁殖计划和事实纠正清单都在里面，所有个体都要落实纠正）。
+摘句必须是原文逐字句子，不能改写或用省略号拼接；评审建议的替换摘句也要当作待核，能打开原文就核对。
 
 ## 杂交规则
 
@@ -35,5 +37,7 @@ model: opus
 
 写 `<运行目录>/gen<g+1>/population.json`：精英 + 杂交 + 突变，共 N 个，按配置里的 id 规则编号，
 `parents` 填好，`origin` 填 `elite` / `crossover` / `mutation`。
+
+写完后用 Read 读回文件，确认是合法 JSON、个体数为 N。
 
 返回一句话：生成了几个个体，哪个杂交冲突最多（列出张力条数）。
