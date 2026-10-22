@@ -1,0 +1,13 @@
+原文.md
+*.mp4
+# 代码工程是 skill 引擎的副本（cp -R），只提交本片自己写的文件
+代码工程/*
+!代码工程/eras_dirs.js
+!代码工程/scenes/
+代码工程/scenes/*
+!代码工程/scenes/dir*.js
+!代码工程/eras_neng.js
+!代码工程/neng_shots.js
+!代码工程/scenes/neng_board.js
+渲染/
+qa/
