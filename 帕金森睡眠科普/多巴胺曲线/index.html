@@ -121,6 +121,24 @@
   td.n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
   .warn { border-left: 2px solid var(--off); padding-left: 10px; color: var(--fg-2); }
   a { color: var(--agon); }
+
+  /* plan reading: verdict line, findings (left) and advice (right) */
+  :root { --ok: #6cc58a; }
+  .reading { gap: 16px; }
+  .lead { margin: 0; font-size: 17px; line-height: 1.6; color: var(--fg); max-width: 60ch; text-wrap: pretty; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+  @media (max-width: 820px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+  h3 { margin: 0 0 10px; font-size: 13px; font-weight: 500; color: var(--mute); letter-spacing: 0.06em; }
+  .finds, .advice { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .find { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .pill { font: 500 11px/1 var(--font-cn); text-align: center; padding: 5px 0; border-radius: 2px; border: 1px solid currentColor; margin-top: 2px; }
+  .pill.ok { color: var(--ok); } .pill.warn { color: var(--off); } .pill.bad { color: var(--dys); } .pill.info { color: var(--mute); }
+  .find b, .advice b { display: block; color: var(--fg); font-weight: 500; font-size: 14px; }
+  .find span, .advice span { display: block; color: var(--fg-2); font-size: 13px; line-height: 1.65; }
+  .advice { counter-reset: adv; }
+  .advice li { counter-increment: adv; display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; }
+  .advice li::before { content: counter(adv); font: 500 12px/1 var(--font-mono); color: var(--agon); border: 1px solid var(--mute-2); border-radius: 2px; height: 22px; display: grid; place-items: center; margin-top: 1px; }
+  .fine { margin: 0; font-size: 12px; color: var(--mute); max-width: 72ch; }
 </style>
 
 <div class="wrap">
@@ -128,6 +146,16 @@
     <canvas id="c" tabindex="0" aria-label="一天内多巴胺能刺激曲线。拖动图下方的圆点移动服药时间，点击图表空白处添加一次服药，再次点击已选中的圆点删除它。"></canvas>
   </div>
   <p class="sr" id="status" aria-live="polite"></p>
+
+  <section class="card reading" aria-labelledby="h-read">
+    <h2 id="h-read">Reading<span>方案解读</span></h2>
+    <p class="lead" id="verdict"></p>
+    <div class="cols">
+      <div><h3>结论</h3><ul class="finds" id="finds"></ul></div>
+      <div><h3>指导意见（按优先顺序，供和医生讨论）</h3><ol class="advice" id="advice"></ol></div>
+    </div>
+    <p class="fine">结论和意见由当前曲线自动生成，随方案、病程和阈值实时变化。模型只是示意，个人的真实情况以症状为准：建议记录几天“开-关日记”（每半小时记一次状态：开、关、异动、睡眠），和这张图一起带给医生。</p>
+  </section>
 
   <div class="desk">
     <section class="card" aria-labelledby="h-plan">
@@ -198,7 +226,7 @@
   let uid = 1;
   function mk(drug, t, amt) { return { id: uid++, drug, t, amt: amt ?? DRUGS[drug].amt, sel: 0, act: 0 }; }
 
-  const DEF = { stage: 'mid', bed: 22.5, wake: 6.5, off: 14, dys: 45, start: 6, ghost: true, addDrug: 'ldopa', preset: 'prami' };
+  const DEF = { stage: 'mid', bed: 22.5, wake: 6.5, off: 14, dys: 50, start: 6, ghost: true, addDrug: 'ldopa', preset: 'prami' };
   const S = { ...DEF };
   let doses = PRESETS[1].doses();
 
@@ -352,7 +380,7 @@
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     const k = reduced ? 1 : 1 - Math.exp(-dt / 0.16);
-    if (dirty) { ST = stats(); dirty = false; syncRows(); }
+    if (dirty) { ST = stats(); dirty = false; syncRows(); renderReading(); }
     const { LW, LH, L: Lx, R: Rx, W, COLS, yAxis, yHandle, lineTop, label1, label2, FIT, MAXROWS, compact, padX } = LY;
     for (const d of doses) { d.sel += ((d === selected ? 1 : 0) - d.sel) * k; d.act += (((d === selected || d === hovered) ? 1 : 0) - d.act) * k; }
     maxAnim += (Math.max(S.dys * 1.12, ST.peak * 1.06, 20) - maxAnim) * (reduced ? 1 : 1 - Math.exp(-dt / 0.12));
@@ -690,6 +718,134 @@
     updateKinetics(); syncStage(); syncParams(); markPreset(S.preset); ghostEl.checked = S.ghost; addSel.value = S.addDrug;
     save(); renderRows(); changed(); buildTable(); announce('已恢复默认方案');
   });
+
+  // ---------- plan reading: conclusions + advice ----------
+  // windows where cond(t) holds, sampled every 5 min from t0 for dur hours
+  function windows(t0, dur, cond) {
+    const out = []; let s = null;
+    const n = Math.round(dur * 12);
+    for (let i = 0; i <= n; i++) {
+      const t = t0 + i / 12, on = i < n && cond(t);
+      if (on && s === null) s = t;
+      if (!on && s !== null) { out.push([s, t]); s = null; }
+    }
+    return out;
+  }
+  const hrs = ws => ws.reduce((a, w) => a + w[1] - w[0], 0);
+  const fmtW = ws => ws.slice(0, 4).map(w => fmtT(w[0]) + '–' + fmtT(w[1])).join('、') + (ws.length > 4 ? ' 等' : '');
+  const fmtH = h => h < 1 ? Math.round(h * 60) + ' 分钟' : h.toFixed(1).replace('.0', '') + ' 小时';
+  const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+  const DAILY_MAX = { prami: ['普拉克索', 4.5, 'mg'], ropi: ['罗匹尼罗', 24, 'mg'], piri: ['吡贝地尔', 250, 'mg'], roti: ['罗替高汀', 16, 'mg/24h'] };
+
+  function analyze() {
+    const tot = t => parts(t).total;
+    const dayDur = mod24(S.bed - S.wake) || 24;
+    const dayOff = windows(S.wake, dayDur, t => tot(t) < S.off);
+    const dayDys = windows(S.wake, dayDur, t => tot(t) > S.dys);
+    const nightOff = windows(S.bed, ST.dur, t => tot(t) < S.off);
+    // morning: how long after waking until the curve is back above the off line
+    let onAt = null;
+    for (let i = 0; i <= 48; i++) { const t = S.wake + i / 12; if (tot(t) >= S.off) { onAt = i / 12; break; } }
+    // daytime off windows that start after the morning recovery = wearing-off before the next dose
+    const wearing = dayOff.filter(w => w[0] > S.wake + (onAt ?? 4) + 0.05);
+    let dMax = 0, dMin = Infinity;
+    for (let i = 0; i <= dayDur * 12; i++) { const t = S.wake + (onAt ?? 0) + i / 12; if (t > S.wake + dayDur) break; const v = tot(t); dMax = Math.max(dMax, v); dMin = Math.min(dMin, v); }
+    const ratio = dMin > 0 ? dMax / dMin : Infinity;
+    const daily = { prami: 0, ropi: 0, piri: 0, roti: 0, levo: 0 };
+    for (const d of doses) {
+      if (d.drug === 'prami' || d.drug === 'pramiER') daily.prami += d.amt;
+      else if (d.drug === 'ropiER') daily.ropi += d.amt;
+      else if (d.drug === 'piri') daily.piri += d.amt;
+      else if (d.drug === 'roti') daily.roti += d.amt;
+      else daily.levo += d.amt;
+    }
+    const hasA = ST.ledA > 0, hasL = doses.some(d => DRUGS[d.drug].cls === 'L');
+    const bedDiff = (ST.bed - ST.mean) / ST.mean;
+    return { dayOff, dayDys, nightOff, onAt, wearing, ratio, daily, hasA, hasL, bedDiff, dayDur };
+  }
+
+  function renderReading() {
+    const vEl = document.getElementById('verdict'), fEl = document.getElementById('finds'), aEl = document.getElementById('advice');
+    if (!doses.length) {
+      vEl.textContent = '还没有服药，曲线只剩残余的内源多巴胺。加入药物后，这里会给出结论。';
+      fEl.innerHTML = ''; aEl.innerHTML = ''; return;
+    }
+    const A = analyze(), F = [], G = [];
+    const add = (lv, title, detail) => F.push({ lv, title, detail });
+    const adv = (key, title, body, prio) => { if (!G.some(g => g.key === key)) G.push({ key, title, body, prio }); };
+
+    // daytime
+    const wearH = hrs(A.wearing), dysH = hrs(A.dayDys);
+    if (wearH >= 0.25) {
+      add(wearH > 1.5 ? 'bad' : 'warn', `白天剂末关期约 ${fmtH(wearH)}`, `出现在 ${fmtW(A.wearing)}，都在下一次服药之前：上一剂的作用已经消退，下一剂还没起效。`);
+      adv('wear', '处理剂末现象', '思路是让两剂之间不掉下去：在医生指导下缩短左旋多巴的服药间隔，或把同样的总量分成更多次；加用恩他卡朋（与每次复方左旋多巴同服）或 MAO-B 抑制剂延长每剂作用；加用或换成长效激动剂。左旋多巴在餐前 1 小时或餐后 1.5 小时服用，避免高蛋白饮食影响吸收。', wearH > 1.5 ? 0 : 1);
+    } else if (A.onAt !== null) {
+      add('ok', '白天没有明显的剂末关期', '起床起效后，到入睡前曲线都在关期线以上。');
+    }
+    if (dysH >= 0.1) {
+      add(dysH > 1.5 ? 'bad' : 'warn', `白天有 ${fmtH(dysH)}高于异动线`, `出现在 ${fmtW(A.dayDys)}，多在服药后 1–2 小时的血药高峰，示意“峰剂异动”的风险。`);
+      adv('dys', '削低峰值，减少异动', '在医生指导下减少每次左旋多巴的剂量、增加服药次数，总量大致不变；如果已经用激动剂，可以考虑提高激动剂占比、减少左旋多巴；金刚烷胺对异动有效。', dysH > 1.5 ? 0 : 1);
+    } else {
+      add('ok', '白天没有超过异动线', '峰值都在异动阈值以下。');
+    }
+    if (A.ratio > 3 && A.hasL) {
+      add('warn', `白天峰谷相差约 ${A.ratio.toFixed(1)} 倍`, '曲线是尖峰加深谷，说明作用以短效的左旋多巴为主，波动大。');
+      adv('cds', '让曲线更平稳', '目标是“持续多巴胺能刺激”：少量多次服用左旋多巴，或用长效药物（缓释激动剂、贴片、COMT 抑制剂）把底部垫高，减少尖峰和低谷。', 2);
+    }
+
+    // morning
+    if (A.onAt === null) {
+      add('bad', '起床后 4 小时内都没有回到关期线以上', '早上的服药可能不够或太晚。');
+      adv('morning', '早上尽快起效', '醒来后尽早服第一剂（可以把药和水放在床边，空腹服用起效更快）；同时考虑睡前的长效药，让清晨不至于掉得太低。', A.onAt === null ? 0 : 1);
+    } else if (A.onAt > 0.4) {
+      add('warn', `起床后约 ${fmtH(A.onAt)}才回到关期线以上`, '示意“清晨关期”：早上起床、穿衣、洗漱最困难的一段。');
+      adv('morning', '早上尽快起效', '醒来后尽早服第一剂（可以把药和水放在床边，空腹服用起效更快）；同时考虑睡前的长效药，让清晨不至于掉得太低。', A.onAt === null ? 0 : 1);
+    }
+
+    // night
+    const nOff = hrs(A.nightOff);
+    if (A.bedDiff < 0) add('info', `入睡时比全天平均低 ${Math.round(-A.bedDiff * 100)}%`, `睡眠的 ${fmtH(ST.dur)}中有 ${fmtH(ST.below)}低于平均线，最低点在 ${fmtT(ST.minT)}。夜里不服药，这一段下降是预期的。`);
+    if (nOff >= 0.25) {
+      add(nOff > 3 ? 'bad' : 'warn', `夜间约 ${fmtH(nOff)}低于关期线`, `从 ${fmtW(A.nightOff)}。示意夜间翻身困难、起夜行动不便，以及清晨的运动迟缓和肌肉痉挛。`);
+      adv('night', '给夜间托底', '指南的思路是睡前加用长效多巴胺能药物：左旋多巴控释片、长效多巴胺受体激动剂（普拉克索缓释片、罗匹尼罗缓释片、罗替高汀贴片），或睡前一剂加恩他卡朋。可以在上面的示例方案里试“+ 睡前控释左旋多巴”“+ 罗替高汀贴片”，对比夜间低谷的变化。', nOff > 3 ? 0 : 1);
+      adv('fall', '夜间防跌倒', '夜里起床时先在床边坐一会儿再站起；床边留夜灯，通往卫生间的路上不放杂物；夜尿多的话可以和医生讨论处理办法。', 3);
+    } else {
+      add('ok', '整夜保持在关期线以上', `夜间最低 ${fmtN(ST.min)}（${fmtT(ST.minT)}），仍高于关期阈值 ${S.off}。`);
+    }
+    if (ST.bed > S.dys * 0.85 || A.bedDiff > 0.3) {
+      add('warn', `入睡时刺激偏高（比平均高 ${Math.round(Math.max(0, A.bedDiff) * 100)}%）`, '晚上的药物作用还在高位。');
+      adv('evening', '留意晚间偏高的副作用', '睡前多巴胺能偏高可能影响入睡，加重多梦或幻觉，老年人更明显。最后一剂的时间和剂量请和医生讨论。', 2);
+    }
+
+    // dose limits
+    for (const [k, [name, max, unit]] of Object.entries(DAILY_MAX)) {
+      if (A.daily[k] > max + 1e-9) {
+        add('bad', `${name}日剂量 ${fmtAmt(A.daily[k])} ${unit}，超过说明书上限 ${max} ${unit}`, '这是模型输入的方案，请核对剂量。');
+        adv('dose', '核对剂量', '超过说明书最大日剂量的方案需要由医生确认。', 0);
+      }
+    }
+    if (A.hasA && A.daily.prami + A.daily.ropi + A.daily.piri + A.daily.roti > 0) {
+      adv('agonist', '使用激动剂时要留意', '激动剂可能引起白天嗜睡、突然入睡（不要在困倦时开车）、下肢水肿，以及冲动控制障碍（如病理性赌博、购物、暴食）。出现这些情况要告诉医生，家属也要帮忙留意。', 8);
+    }
+    adv('safe', '所有调整都要经过医生', '不要自行停药或突然大幅减量，特别是左旋多巴和激动剂：突然停用可能出现严重的撤药反应，甚至出现高热、肌肉强直等危及生命的情况。', 9);
+
+    // verdict line
+    const parts2 = [];
+    if (wearH >= 0.25) parts2.push(`白天有 ${fmtH(wearH)}剂末关期`);
+    if (dysH >= 0.1) parts2.push(`白天有 ${fmtH(dysH)}可能异动`);
+    if (A.onAt !== null && A.onAt > 0.4) parts2.push(`起床后 ${fmtH(A.onAt)}才起效`);
+    if (nOff >= 0.25) parts2.push(`入睡后逐渐下降，夜里约 ${fmtH(nOff)}处于关期，${fmtT(ST.minT)} 前后最低`);
+    vEl.textContent = parts2.length
+      ? '这个方案：' + parts2.join('；') + '。'
+      : '这个方案在模型里比较平稳：白天在治疗窗内，夜间也没有掉到关期线以下。';
+
+    const L = { ok: '良好', warn: '注意', bad: '问题', info: '说明' };
+    const order = { bad: 0, warn: 1, info: 2, ok: 3 };
+    F.sort((a, b) => order[a.lv] - order[b.lv]);
+    fEl.innerHTML = F.map(f => `<li class="find"><span class="pill ${f.lv}">${L[f.lv]}</span><div><b>${esc(f.title)}</b><span>${esc(f.detail)}</span></div></li>`).join('');
+    G.sort((a, b) => a.prio - b.prio);
+    aEl.innerHTML = G.map(g => `<li><div><b>${esc(g.title)}</b><span>${esc(g.body)}</span></div></li>`).join('');
+  }
 
   function buildTable() {
     document.getElementById('drugTable').innerHTML = Object.entries(DRUGS).map(([k, D]) => {
