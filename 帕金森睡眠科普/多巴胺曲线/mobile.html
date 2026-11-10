@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>多巴胺能曲线 手机版</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="手机阅读版：固定 07:00、12:00、22:00 三个服药时间，调节药物与剂量，直接看曲线、总体结论、用药方案和指导意见。">
+<!--
+  多巴胺能曲线 · 手机版
+  模型与完整版相同；视觉改编自 Caffeine Curve（MIT，https://github.com/marciob/caffeine-curve），原设计 Charles Postiaux。
+  仅用于科普示意，不能用于调整用药。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one phone-width column. Chart → verdict → dose desk → schedule → reading. Dark-only instrument look, same as the full version. */
+  :root {
+    --bg: #0b0c0f;
+    --panel: #121318;
+    --panel-2: #171920;
+    --line: #25272e;
+    --fg: #f2f3f5;
+    --fg-2: #d5d7dc;
+    --mute: #858996;
+    --mute-2: #3d4049;
+    --levo: #f2f3f5;
+    --agon: #2e82ff;
+    --off: #e8a33d;
+    --dys: #e0607a;
+    --ok: #6cc58a;
+    --font-mono: "Geist Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --font-cn: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color-scheme: dark;
+  }
+  html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: var(--font-cn); font-size: 15px; line-height: 1.6;
+    padding-block: 14px 40px;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (min-width: 400px) { body { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); } }
+  .wrap { max-width: 560px; margin: 0 auto; display: grid; gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 14px; display: grid; gap: 12px; min-width: 0; }
+  h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: 0.02em; }
+  h2 { margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: baseline; gap: 8px; }
+  h2 small { font: 500 10px/1 var(--font-mono); letter-spacing: 0.14em; color: var(--mute); text-transform: uppercase; }
+  .sub { margin: 2px 0 0; font: 12px/1.5 var(--font-mono); color: var(--mute); }
+  button { font-family: inherit; }
+  button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--agon); outline-offset: 2px; }
+
+  /* chart */
+  .chart { padding: 10px 0 8px; gap: 8px; }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; padding-inline: 12px; gap: 8px; }
+  .zoom { display: flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; flex: 0 0 auto; }
+  .zoom button { background: transparent; border: 0; color: var(--mute); font: 500 12px/1 var(--font-mono); width: 40px; height: 32px; cursor: pointer; }
+  .zoom button + button { border-left: 1px solid var(--line); }
+  .zoom button[aria-pressed="true"] { color: var(--fg); background: var(--panel-2); }
+  .scroller { overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  canvas#c { display: block; touch-action: pan-x pan-y pinch-zoom; -webkit-user-select: none; user-select: none; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; padding-inline: 12px; font-size: 12px; color: var(--mute); }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+  .hint { padding-inline: 12px; font-size: 12px; color: var(--mute); margin: 0; }
+
+  /* verdict */
+  .verdict { gap: 12px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 3px; border: 1px solid currentColor; justify-self: start; }
+  .badge.ok { color: var(--ok); } .badge.warn { color: var(--off); } .badge.bad { color: var(--dys); }
+  .badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .headline { margin: 0; font-size: 20px; line-height: 1.45; font-weight: 700; text-wrap: balance; }
+  .dosejudge { margin: 0; font-size: 15px; color: var(--fg-2); }
+  .dosejudge b { color: var(--fg); }
+  .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .tile { background: var(--panel-2); border-radius: 3px; padding: 10px; display: grid; gap: 2px; min-width: 0; }
+  .tile span { font-size: 12px; color: var(--mute); }
+  .tile b { font: 500 20px/1.2 var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tile b small { font: 12px var(--font-cn); color: var(--mute); margin-left: 3px; }
+  .tile.ok b { color: var(--ok); } .tile.warn b { color: var(--off); } .tile.bad b { color: var(--dys); }
+
+  /* dose desk */
+  .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+  .seg button { background: transparent; border: 0; color: var(--fg-2); font-size: 14px; height: 40px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--agon) 18%, transparent); color: var(--fg); font-weight: 700; }
+  .lbl { font-size: 12px; color: var(--mute); margin: 0 0 -4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: transparent; border: 1px solid var(--line); color: var(--fg-2); border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; min-height: 34px; }
+  .chip[aria-pressed="true"] { border-color: var(--agon); color: var(--fg); background: color-mix(in srgb, var(--agon) 16%, transparent); }
+  .chip[aria-pressed="true"]::before { content: "✓ "; color: var(--agon); }
+  .drug { border: 1px solid var(--line); border-radius: 3px; padding: 10px; display: grid; gap: 8px; background: var(--panel-2); }
+  .drug-h { display: flex; align-items: center; gap: 8px; }
+  .sw { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+  .sw.L { background: var(--levo); } .sw.A { background: var(--agon); } .sw.P { background: var(--agon); border-radius: 2px; }
+  .drug-h b { font-size: 15px; }
+  .drug-h span { font-size: 12px; color: var(--mute); }
+  .slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .slots.one { grid-template-columns: minmax(0, 1fr); }
+  .slot { display: grid; gap: 4px; min-width: 0; }
+  .slot > span { font: 500 11px/1 var(--font-mono); color: var(--mute); text-align: center; }
+  .step { display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px; align-items: center; border: 1px solid var(--line); border-radius: 3px; background: var(--bg); height: 52px; }
+  .step button { height: 100%; background: transparent; border: 0; color: var(--fg-2); font: 18px/1 var(--font-mono); cursor: pointer; }
+  .step button:disabled { color: var(--mute-2); }
+  .step output { text-align: center; line-height: 1.15; min-width: 0; }
+  .step output b { display: block; font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .step output small { display: block; font: 10px var(--font-mono); color: var(--mute); white-space: nowrap; }
+  .step.zero output b { color: var(--mute); font-weight: 400; }
+  .slots.one .step { grid-template-columns: 52px minmax(0, 1fr) 52px; }
+  .row-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn { background: transparent; border: 1px solid var(--line); color: var(--fg-2); border-radius: 3px; height: 38px; padding: 0 14px; font-size: 14px; cursor: pointer; }
+  .btn.primary { border-color: var(--agon); color: var(--fg); }
+  details { border-top: 1px solid var(--line); padding-top: 10px; }
+  summary { cursor: pointer; font-size: 13px; color: var(--fg-2); }
+  .adv { display: grid; gap: 10px; margin-top: 10px; }
+  .prm { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 10px; align-items: center; font-size: 14px; }
+  .prm small { display: block; font-size: 11px; color: var(--mute); }
+  .prm .step { height: 40px; }
+
+  /* schedule */
+  .sched { list-style: none; margin: 0; padding: 0; display: grid; }
+  .sched li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .sched li:first-child { border-top: 0; padding-top: 0; }
+  .sched time { font: 500 17px/1.3 var(--font-mono); font-variant-numeric: tabular-nums; }
+  .sched .what { display: grid; gap: 4px; }
+  .sched .item { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .sched .item b { font-size: 15px; }
+  .sched .item span { font-size: 13px; color: var(--mute); }
+  .sched .none { color: var(--mute); font-size: 14px; }
+  .totals { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--fg-2); border-top: 1px solid var(--line); padding-top: 10px; }
+  .totals b { font-family: var(--font-mono); color: var(--fg); font-weight: 500; }
+
+  /* reading */
+  .lead { margin: 0; font-size: 16px; line-height: 1.65; }
+  h3 { margin: 4px 0 0; font-size: 13px; color: var(--mute); font-weight: 500; letter-spacing: 0.04em; }
+  .finds, .advice { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .find { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .pill { font-size: 11px; font-weight: 700; text-align: center; padding: 4px 0; border-radius: 2px; border: 1px solid currentColor; margin-top: 2px; }
+  .pill.ok { color: var(--ok); } .pill.warn { color: var(--off); } .pill.bad { color: var(--dys); } .pill.info { color: var(--mute); }
+  .find b, .advice b { display: block; font-size: 15px; font-weight: 700; }
+  .find span, .advice span { display: block; color: var(--fg-2); font-size: 14px; line-height: 1.7; }
+  .advice { counter-reset: adv; }
+  .advice li { counter-increment: adv; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; }
+  .advice li::before { content: counter(adv); font: 500 12px/1 var(--font-mono); color: var(--agon); border: 1px solid var(--mute-2); border-radius: 2px; height: 24px; display: grid; place-items: center; margin-top: 1px; }
+  .fine { margin: 0; font-size: 12px; color: var(--mute); line-height: 1.7; }
+  .warnbox { border-left: 2px solid var(--off); padding-left: 10px; font-size: 13px; color: var(--fg-2); margin: 0; }
+  a { color: var(--agon); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>多巴胺能曲线</h1>
+    <p class="sub" id="sub"></p>
+  </header>
+
+  <section class="card chart" aria-label="24 小时曲线">
+    <div class="chart-head">
+      <span style="font-size:12px;color:var(--mute)">点按曲线看数值</span>
+      <div class="zoom" role="group" aria-label="横向放大">
+        <button type="button" data-z="1" aria-pressed="true">1×</button>
+        <button type="button" data-z="2">2×</button>
+        <button type="button" data-z="3">3×</button>
+      </div>
+    </div>
+    <div class="scroller" id="scroller">
+      <canvas id="c" aria-label="一天内多巴胺能刺激曲线"></canvas>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--levo)"></i>左旋多巴</span>
+      <span><i style="background:var(--agon)"></i>激动剂</span>
+      <span><i style="background:#6d7180"></i>残余内源（示意）</span>
+      <span><i style="background:var(--off)"></i>关期线</span>
+      <span><i style="background:var(--dys)"></i>异动线</span>
+    </div>
+  </section>
+
+  <section class="card verdict" aria-labelledby="hl">
+    <span class="badge" id="badge"></span>
+    <p class="headline" id="hl"></p>
+    <p class="dosejudge" id="dosejudge"></p>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-desk">
+    <h2 id="h-desk">调节用药 <small>Doses</small></h2>
+    <p class="lbl">病程</p>
+    <div class="seg" id="stages" role="group" aria-label="病程"></div>
+    <p class="lbl">联用哪些药（点选加入或去掉）</p>
+    <div class="chips" id="chips" role="group" aria-label="药物"></div>
+    <p class="lbl">每次剂量（服药时间固定：07:00 · 12:00 · 22:00）</p>
+    <div id="desk" style="display:grid;gap:8px"></div>
+    <div class="row-btns">
+      <button class="btn primary" type="button" id="useRec">用推荐方案</button>
+      <button class="btn" type="button" id="clearAll">全部清零</button>
+    </div>
+    <details>
+      <summary>高级：阈值与作息</summary>
+      <div class="adv" id="adv"></div>
+    </details>
+  </section>
+
+  <section class="card" aria-labelledby="h-plan">
+    <h2 id="h-plan">用药方案 <small>Schedule</small></h2>
+    <ol class="sched" id="sched"></ol>
+    <div class="totals" id="totals"></div>
+    <button class="btn" type="button" id="copy" style="justify-self:start">复制方案文字</button>
+  </section>
+
+  <section class="card" aria-labelledby="h-read">
+    <h2 id="h-read">方案解读 <small>Reading</small></h2>
+    <p class="lead" id="verdict"></p>
+    <h3>结论</h3>
+    <ul class="finds" id="finds"></ul>
+    <h3>指导意见（按优先顺序，供和医生讨论）</h3>
+    <ol class="advice" id="advice"></ol>
+    <p class="warnbox">本页只用于理解用药和多巴胺能曲线的关系，<b>不能用来自行调整药物</b>。剂量、时间和换药请和神经内科医生商量。</p>
+    <p class="fine">模型：每种药按左旋多巴等效剂量（LEDD）折算，普拉克索 ×100、罗匹尼罗 ×20、罗替高汀 ×30、吡贝地尔 ×1、息宁（控释）×0.75；一室吸收-消除模型叠加，按每天同一方案的稳态计算；贴片按 24 小时匀速释放。关期线、异动线是可调的假设值。推荐方案是在固定三个服药时间下，模型里 LEDD 最低且全天不进关期、不出异动的组合，贴片不超过 8 mg（晚期需要 10 mg）。息宁是控释片，能否掰半片请向医生或药师确认。视觉改编自 <a href="https://github.com/marciob/caffeine-curve" target="_blank" rel="noopener">Caffeine Curve</a>（MIT）。</p>
+  </section>
+</div>
+<p class="sr" id="status" aria-live="polite"></p>
+
+<script>
+(() => {
+  'use strict';
+  const SLOTS = [7, 12, 22];
+  // brand-first labels as patients know them; amt step matches tablet splitting
+  const DRUGS = {
+    ldopaCR: { brand: '息宁', name: '卡左双多巴控释片', led: 0.75, tp: 2.5, half: 'L', cls: 'L', step: 100, max: 400, tab: 200, tabStep: 0.5 },
+    ldopa:   { brand: '美多芭', name: '多巴丝肼片', led: 1, tp: 1, half: 'L', cls: 'L', step: 50, max: 400, tab: 200, tabStep: 0.25 },
+    roti:    { brand: '优普洛', name: '罗替高汀贴片', led: 30, patch: true, half: 5.5, cls: 'A', step: 2, max: 16, unit: 'mg/24h' },
+    prami:   { brand: '森福罗', name: '普拉克索片', led: 100, tp: 2, half: 10, cls: 'A', step: 0.125, max: 1.5, tab: 0.25, tabStep: 0.5 },
+    pramiER: { brand: '森福罗缓释', name: '普拉克索缓释片', led: 100, tp: 6, half: 10, cls: 'A', step: 0.375, max: 4.5 },
+    ropiER:  { brand: '力备', name: '罗匹尼罗缓释片', led: 20, tp: 6, half: 6, cls: 'A', step: 2, max: 24 },
+    piri:    { brand: '泰舒达', name: '吡贝地尔缓释片', led: 1, tp: 3, half: 7, cls: 'A', step: 50, max: 150, tab: 50, tabStep: 1 },
+  };
+  const STAGES = {
+    early: { label: '早期', lHalf: 3.5, endo: 4 },
+    mid:   { label: '中期', lHalf: 2.2, endo: 2 },
+    late:  { label: '晚期', lHalf: 1.5, endo: 0.5 },
+  };
+  // model-optimized plans at 07/12/22 (lowest LEDD, no off, no dyskinesia, patch ≤ 8 mg; late needs 10 mg)
+  const REC = {
+    early: { roti: [8], ldopa: [0, 50, 0], ldopaCR: [0, 0, 100] },
+    mid:   { roti: [8], ldopa: [50, 0, 0], ldopaCR: [0, 100, 100] },
+    late:  { roti: [10], ldopa: [50, 0, 0], ldopaCR: [0, 100, 100] },
+  };
+  const DEF = { stage: 'mid', off: 14, dys: 50, bed: 22.5, wake: 6.5, zoom: 1 };
+  const START = 6, HOURS = 24;
+  const S = { ...DEF };
+  const clone = o => JSON.parse(JSON.stringify(o));
+  let plan = clone(REC.mid);
+
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const mod24 = h => ((h % 24) + 24) % 24;
+  const fmtT = t => { const m = Math.round(mod24(t) * 60) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+  const fmtN = v => v >= 10 ? String(Math.round(v)) : v.toFixed(1);
+  const num = v => String(+v.toFixed(3));
+  const FR = { 0.25: '¼', 0.5: '½', 0.75: '¾' };
+  function tabText(D, amt) {
+    if (!D.tab) return null;
+    const n = amt / D.tab, w = Math.floor(n + 1e-9), f = +(n - w).toFixed(2);
+    return (w ? w : '') + (FR[f] || (f ? '+' + f : '')) + ' 片';
+  }
+  function amtText(k, amt) {
+    const D = DRUGS[k];
+    if (D.patch) return { main: num(amt) + ' mg', small: '每日一贴' };
+    const t = tabText(D, amt);
+    return t ? { main: t, small: num(amt) + ' mg' } : { main: num(amt) + ' mg', small: '' };
+  }
+
+  // ---------- storage (per-viewer convenience) ----------
+  const KEY = 'dopa-curve-mobile-v1';
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ S, plan })); } catch (e) {} }
+  (function load() {
+    try {
+      const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!d) return;
+      if (d.S) for (const k of Object.keys(DEF)) if (typeof d.S[k] === typeof DEF[k]) S[k] = d.S[k];
+      if (!STAGES[S.stage]) S.stage = DEF.stage;
+      if (d.plan && typeof d.plan === 'object') {
+        const p = {};
+        for (const [k, arr] of Object.entries(d.plan)) if (DRUGS[k] && Array.isArray(arr) && arr.every(Number.isFinite)) p[k] = DRUGS[k].patch ? [arr[0] || 0] : [0, 1, 2].map(i => arr[i] || 0);
+        plan = p;
+      }
+    } catch (e) {}
+  })();
+
+  // ---------- model ----------
+  function solveKa(tmax, ke) { let lo = ke * 1.0001, hi = 400; for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; const t = Math.log(m / ke) / (m - ke); if (t > tmax) lo = m; else hi = m; } return (lo + hi) / 2; }
+  const kin = {};
+  function updateKinetics() {
+    for (const [k, D] of Object.entries(DRUGS)) {
+      const half = D.half === 'L' ? STAGES[S.stage].lHalf : D.half, ke = Math.LN2 / half;
+      kin[k] = { ke, ka: D.patch ? 0 : solveKa(Math.min(D.tp, 0.95 / ke), ke) };
+    }
+  }
+  function unit(k, dt) {
+    if (dt <= 0) return 0;
+    const { ke, ka } = kin[k];
+    if (DRUGS[k].patch) return dt <= 24 ? (1 - Math.exp(-ke * dt)) / 24 : (1 - Math.exp(-ke * 24)) / 24 * Math.exp(-ke * (dt - 24));
+    return ka * ke / (ka - ke) * (Math.exp(-ke * dt) - Math.exp(-ka * dt));
+  }
+  let doses = [];
+  function buildDoses() {
+    doses = [];
+    for (const [k, arr] of Object.entries(plan)) {
+      if (DRUGS[k].patch) { if (arr[0] > 0) doses.push({ drug: k, t: 7, amt: arr[0] }); }
+      else arr.forEach((a, i) => { if (a > 0) doses.push({ drug: k, t: SLOTS[i], amt: a }); });
+    }
+  }
+  const endoAt = t => STAGES[S.stage].endo * (1 + 0.25 * Math.cos(2 * Math.PI * (t - 14) / 24));
+  function parts(t) {
+    let L = 0, A = 0;
+    for (const d of doses) {
+      const D = DRUGS[d.drug], f = d.amt * D.led; let v = 0;
+      for (let day = 0; day < 7; day++) v += unit(d.drug, t - d.t + 24 * day);
+      if (D.cls === 'L') L += f * v; else A += f * v;
+    }
+    const E = endoAt(t); return { E, A, L, total: E + A + L };
+  }
+  const tot = t => parts(t).total;
+  const asleep = t => mod24(t - S.bed) < mod24(S.wake - S.bed);
+  function windows(t0, dur, cond) {
+    const out = []; let s = null; const n = Math.round(dur * 12);
+    for (let i = 0; i <= n; i++) { const t = t0 + i / 12, on = i < n && cond(t); if (on && s === null) s = t; if (!on && s !== null) { out.push([s, t]); s = null; } }
+    return out;
+  }
+  const hrs = ws => ws.reduce((a, w) => a + w[1] - w[0], 0);
+  const fmtW = ws => ws.slice(0, 3).map(w => fmtT(w[0]) + '–' + fmtT(w[1])).join('、') + (ws.length > 3 ? ' 等' : '');
+  const fmtH = h => h < 1 ? Math.round(h * 60) + ' 分钟' : h.toFixed(1).replace('.0', '') + ' 小时';
+
+  function stats() {
+    let sum = 0, peak = 0, gmin = Infinity;
+    for (let i = 0; i < 288; i++) { const v = tot(START + i / 12); sum += v; peak = Math.max(peak, v); gmin = Math.min(gmin, v); }
+    const mean = sum / 288, dur = mod24(S.wake - S.bed) || 24, dayDur = mod24(S.bed - S.wake) || 24;
+    let min = Infinity, minT = S.bed, below = 0;
+    for (let i = 0; i < dur * 12; i++) { const t = S.bed + i / 12, v = tot(t); if (v < mean) below += 1 / 12; if (v < min) { min = v; minT = t; } }
+    let onAt = null;
+    for (let i = 0; i <= 48; i++) { const t = S.wake + i / 12; if (tot(t) >= S.off) { onAt = i / 12; break; } }
+    const dayOff = windows(S.wake, dayDur, t => tot(t) < S.off);
+    const wearing = dayOff.filter(w => w[0] > S.wake + (onAt ?? 4) + 0.05);
+    const dayDys = windows(S.wake, dayDur, t => tot(t) > S.dys);
+    const nightOff = windows(S.bed, dur, t => tot(t) < S.off);
+    let dMax = 0, dMin = Infinity;
+    for (let i = 0; i <= dayDur * 12; i++) { const t = S.wake + (onAt ?? 0) + i / 12; if (t > S.wake + dayDur) break; const v = tot(t); dMax = Math.max(dMax, v); dMin = Math.min(dMin, v); }
+    let ledd = 0, ledA = 0;
+    for (const d of doses) { const x = d.amt * DRUGS[d.drug].led; ledd += x; if (DRUGS[d.drug].cls === 'A') ledA += x; }
+    const daily = { prami: 0, ropi: 0, piri: 0, roti: 0 };
+    for (const d of doses) {
+      if (d.drug === 'prami' || d.drug === 'pramiER') daily.prami += d.amt; else if (d.drug === 'ropiER') daily.ropi += d.amt;
+      else if (d.drug === 'piri') daily.piri += d.amt; else if (d.drug === 'roti') daily.roti += d.amt;
+    }
+    const bed = tot(S.bed);
+    return { mean, peak, gmin, dur, dayDur, min, minT, below, onAt, dayOff, wearing, dayDys, nightOff, ratio: dMin > 0 ? dMax / dMin : Infinity, ledd, ledA, daily, bed, bedDiff: (bed - mean) / mean };
+  }
+
+  // ---------- chart ----------
+  const canvas = document.getElementById('c'), ctx = canvas.getContext('2d'), scroller = document.getElementById('scroller');
+  const FONT = '"Geist Mono", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", monospace';
+  const BG = [18, 19, 24], BLUE = [46, 130, 255], WHITE = [255, 255, 255], ENDO = [130, 134, 150], OFF = [232, 163, 61], DYS = [224, 96, 122];
+  const CELL = 8, K = 1.6; // logical px per CSS px
+  let LY, ST, tap = null;
+  const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+  function layout() {
+    const cssW = Math.max(260, scroller.clientWidth) * S.zoom, cssH = Math.round(clamp(scroller.clientWidth * 0.95, 280, 420));
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const LW = cssW * K, LH = cssH * K;
+    const Lx = 16.5, Rx = LW - 100.5, lineTop = 96, yAxis = LH - 70.5, row0 = yAxis - 5;
+    const FIT = Math.floor((row0 - lineTop - 20) / CELL);
+    LY = { LW, LH, L: Lx, R: Rx, W: Rx - Lx, COLS: Math.floor((Rx - Lx - 4) / CELL) + 1, lineTop, yAxis, row0, FIT, MAXROWS: FIT + 4, dpr, cssW, cssH };
+    canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+    canvas.width = Math.round(cssW * dpr); canvas.height = Math.round(cssH * dpr);
+  }
+  const t2x = t => LY.L + (t - START) / HOURS * LY.W;
+  const x2t = x => START + (x - LY.L) / LY.W * HOURS;
+  function text(s, x, y, size, color, align = 'left', w = 400) { ctx.font = `${w} ${size}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = color; ctx.fillText(s, x, y); }
+  const measure = (s, size, w = 400) => { ctx.font = `${w} ${size}px ${FONT}`; return ctx.measureText(s).width; };
+  function dot(x, y, r, c) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+  const inWin = t => mod24(t - START) + START;
+
+  function draw() {
+    const { LW, LH, L: Lx, R: Rx, COLS, lineTop, yAxis, row0, FIT, MAXROWS, dpr, cssW } = LY;
+    const maxV = Math.max(ST.peak * 1.25, S.off * 2.2, 20); // fit the curve; the dyskinesia line may sit above the frame
+    const rowsOf = v => v / maxV * FIT, yOf = v => row0 + 4 - rowsOf(v) * CELL;
+    ctx.setTransform(dpr / K, 0, 0, dpr / K, 0, 0);
+    ctx.fillStyle = rgba(BG, 1); ctx.fillRect(0, 0, LW, LH);
+    // sleep band
+    for (let k = 0; k < COLS; k++) { const x = Lx + 4 + CELL * k; if (asleep(x2t(x))) { ctx.fillStyle = 'rgba(46,130,255,0.06)'; ctx.fillRect(x - CELL / 2, lineTop, CELL, yAxis - lineTop); } }
+    const levoT = doses.filter(d => DRUGS[d.drug].cls === 'L').map(d => d.t);
+    for (let k = 0; k < COLS; k++) {
+      const x = Lx + 4 + CELL * k, t = x2t(x), p = parts(t);
+      const bE = rowsOf(p.E), bA = rowsOf(p.E + p.A), rf = rowsOf(p.total), n = Math.min(MAXROWS, Math.floor(rf) + (rf % 1 > 0.3 ? 1 : 0));
+      let last = -Infinity; for (const lt of levoT) for (const c of [lt, lt - 24]) if (c <= t && c > last) last = c;
+      const age = t - last; let bump = !isFinite(age) ? 0 : age < 0.6 ? 0.72 + 0.28 * age / 0.6 : Math.exp(-0.5 * ((age - 0.6) / 0.5) ** 2);
+      const topI = 0.3 + 0.7 * bump, topRow = Math.max(1, n - 1);
+      for (let r = 0; r < n; r++) {
+        const m = r + 0.5, I = 0.13 + (topI - 0.13) * Math.pow(r / topRow, 1.2);
+        let rad = 1 + 2.3 * Math.pow(clamp((I - 0.13) / 0.6, 0, 1), 0.8), col, a;
+        if (m < bE) { col = ENDO; a = 0.4; rad = 1.5; } else if (m < bA) { col = BLUE; a = 0.45 + 0.5 * r / topRow; rad = Math.max(rad, 1.9); } else { col = WHITE; a = I; }
+        dot(x, row0 - CELL * r, rad, rgba(col, a));
+      }
+    }
+    // axis + hours
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(Lx, yAxis); ctx.lineTo(Rx, yAxis); ctx.stroke();
+    const step = S.zoom >= 2 ? 3 : 6;
+    for (let h = 0; h <= HOURS; h += step) { const x = Math.round(t2x(START + h)) + 0.5; ctx.beginPath(); ctx.moveTo(x, yAxis - 4); ctx.lineTo(x, yAxis + 4); ctx.stroke(); text(String((START + h) % 24).padStart(2, '0'), x, yAxis + 58, 20, 'rgba(255,255,255,0.4)', 'center'); }
+    // dose markers at fixed slots
+    for (const [i, s] of SLOTS.entries()) {
+      const x = t2x(s), here = doses.filter(d => d.t === s && !DRUGS[d.drug].patch);
+      let y = yAxis + 22;
+      if (!here.length) { dot(x, y, 4, 'rgba(255,255,255,0.18)'); continue; }
+      for (const d of here) { dot(x, y, 7, DRUGS[d.drug].cls === 'A' ? rgba(BLUE, 1) : 'rgba(225,225,225,1)'); y += 0; x; }
+      if (here.length > 1) text('×' + here.length, x + 11, yAxis + 29, 17, 'rgba(255,255,255,0.6)');
+    }
+    // reference lines
+    const refs = [
+      { v: ST.mean, label: '平均 ' + fmtN(ST.mean), c: 'rgba(255,255,255,0.8)', l: 'rgba(255,255,255,0.4)', dash: [6, 4] },
+      { v: S.off, label: '关期 ' + S.off, c: rgba(OFF, 1), l: rgba(OFF, 0.7), dash: [3, 4] },
+      { v: S.dys, label: '异动 ' + S.dys, c: rgba(DYS, 1), l: rgba(DYS, 0.6), dash: [3, 4] },
+    ].map(r => ({ ...r, y: yOf(r.v) })).filter(r => r.v <= maxV);
+    if (S.dys > maxV) text('异动 ' + S.dys + '↑', Rx + 8, lineTop + 6, 17, rgba(DYS, 1));
+    for (const r of refs) { ctx.save(); ctx.setLineDash(r.dash); ctx.strokeStyle = r.l; ctx.beginPath(); ctx.moveTo(Lx, Math.round(r.y) + 0.5); ctx.lineTo(Rx, Math.round(r.y) + 0.5); ctx.stroke(); ctx.restore(); }
+    const sorted = [...refs].sort((a, b) => a.y - b.y);
+    for (let i = 1; i < sorted.length; i++) { const prev = sorted[i - 1].ly ?? sorted[i - 1].y; if (sorted[i].y - prev < 24) sorted[i].ly = prev + 24; }
+    for (const r of sorted) text(r.label, Rx + 8, (r.ly ?? r.y) + 7, 19, r.c);
+    // bed / wake / patient labels
+    const bedX = t2x(inWin(S.bed));
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.beginPath(); ctx.moveTo(Math.round(bedX) + 0.5, lineTop - 8); ctx.lineTo(Math.round(bedX) + 0.5, yAxis - 10); ctx.stroke();
+    const bl = '入睡 ' + fmtT(S.bed), bw = measure(bl, 21);
+    const bflip = bedX + 10 + bw > LW - 6;
+    text(bl, bedX + (bflip ? -10 : 10), lineTop - 46, 21, '#f4f4f4', bflip ? 'right' : 'left', 500);
+    const bd = (ST.bedDiff < 0 ? '低于平均 ' : '高于平均 ') + Math.round(Math.abs(ST.bedDiff) * 100) + '%';
+    text(bd, bedX + (bflip ? -10 : 10), lineTop - 18, 19, ST.bedDiff < 0 ? rgba(OFF, 1) : '#cfcfcf', bflip ? 'right' : 'left');
+    text('睡眠', bedX + (bflip ? -10 : 10), lineTop + 22, 17, 'rgba(130,170,255,0.75)', bflip ? 'right' : 'left');
+    // night minimum
+    const mx = t2x(inWin(ST.minT)), my = yOf(ST.min);
+    dot(mx, my, 5, ST.min < S.off ? rgba(DYS, 1) : rgba(OFF, 1));
+    const ml = '夜间最低 ' + fmtN(ST.min) + ' · ' + fmtT(ST.minT), mw = measure(ml, 18);
+    const mxl = clamp(mx - mw / 2, Lx, Rx - mw), myl = Math.max(lineTop + 40, my - 46);
+    ctx.fillStyle = 'rgba(18,19,24,0.88)'; ctx.fillRect(mxl - 6, myl - 20, mw + 12, 28);
+    ctx.strokeStyle = ST.min < S.off ? rgba(DYS, 0.6) : rgba(OFF, 0.5); ctx.beginPath(); ctx.moveTo(mx + 0.5, myl + 8); ctx.lineTo(mx + 0.5, my - 6); ctx.stroke();
+    text(ml, mxl, myl, 18, ST.min < S.off ? rgba(DYS, 1) : rgba(OFF, 1));
+    // tap readout
+    if (tap != null) {
+      const t = tap, x = t2x(t), p = parts(t), y = yOf(p.total);
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, lineTop); ctx.lineTo(Math.round(x) + 0.5, yAxis); ctx.stroke();
+      dot(x, y, 5, '#ffffff');
+      const s1 = fmtT(t) + ' · ' + fmtN(p.total) + (p.total < S.off ? ' 关期' : p.total > S.dys ? ' 异动' : '');
+      const s2 = '左旋 ' + fmtN(p.L) + ' · 激动 ' + fmtN(p.A) + ' · 内源 ' + fmtN(p.E);
+      const w = Math.max(measure(s1, 21, 500), measure(s2, 17)) + 20;
+      let bx = x + 12; if (bx + w > LW - 6) bx = x - 12 - w; bx = clamp(bx, 6, LW - 6 - w);
+      const by = clamp(y - 70, 6, yAxis - 64);
+      ctx.fillStyle = 'rgba(10,11,14,0.92)'; ctx.fillRect(bx, by, w, 58); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.strokeRect(bx + 0.5, by + 0.5, w - 1, 57);
+      text(s1, bx + 10, by + 25, 21, '#ffffff', 'left', 500); text(s2, bx + 10, by + 48, 17, 'rgba(230,230,230,0.75)');
+    }
+  }
+  canvas.addEventListener('click', e => {
+    const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) * K;
+    const t = x2t(x);
+    tap = (x >= LY.L && x <= LY.R) ? Math.round(clamp(t, START, START + 24 - 1 / 12) * 12) / 12 : null;
+    draw();
+  });
+
+  // ---------- verdict ----------
+  function renderVerdict() {
+    const nOff = hrs(ST.nightOff), dOff = hrs(ST.wearing) + (ST.onAt == null ? 4 : ST.onAt > 0.4 ? ST.onAt : 0), dys = hrs(ST.dayDys);
+    const badge = document.getElementById('badge'), hl = document.getElementById('hl'), dj = document.getElementById('dosejudge');
+    if (!doses.length) {
+      badge.className = 'badge bad'; badge.textContent = '还没有用药';
+      hl.textContent = '在下面的“调节用药”里加入药物。'; dj.textContent = ''; document.getElementById('tiles').innerHTML = ''; return;
+    }
+    const anyOff = nOff >= 0.25 || dOff >= 0.25, anyDys = dys >= 0.1;
+    badge.className = 'badge ' + (anyOff && anyDys ? 'bad' : anyOff || anyDys ? 'warn' : 'ok');
+    badge.textContent = anyOff || anyDys ? '需要调整' : '全天在治疗窗内';
+    const night = nOff < 0.25 ? '整夜保持在关期线以上' : `夜间约 ${fmtH(nOff)}低于关期线，${fmtT(ST.minT)} 前后最低`;
+    const day = dOff >= 0.25 && anyDys ? `白天约 ${fmtH(dOff)}关期、${fmtH(dys)}可能异动` : dOff >= 0.25 ? `白天约 ${fmtH(dOff)}处于关期` : anyDys ? `白天约 ${fmtH(dys)}高于异动线` : '白天没有关期，也没有异动';
+    hl.textContent = night + '；' + day + '。';
+    const margin = (ST.gmin - S.off) / S.off;
+    let judge;
+    if (anyOff && anyDys) judge = '<b>剂量分布不均</b>：有的时段太高（异动），有的时段太低（关期），需要把剂量从高峰挪到低谷，或用更长效的药。';
+    else if (anyOff) judge = '<b>剂量不够，或没有覆盖到低谷时段</b>：' + (nOff >= 0.25 ? '主要缺在夜里，睡前的长效药可以托底。' : '主要缺在白天两次服药之间。');
+    else if (anyDys) judge = '<b>剂量偏多</b>：峰值超过了异动线，可以减少单次剂量。';
+    else if (margin > 0.3) judge = `<b>剂量够，而且有富余</b>：全天最低点比关期线高出 ${Math.round(margin * 100)}%，可以和医生讨论是否减量。`;
+    else judge = `<b>剂量刚好够</b>：全天最低点只比关期线高 ${Math.max(0, Math.round(margin * 100))}%，余量很小，漏服或吸收变差时容易掉进关期。`;
+    dj.innerHTML = judge;
+    const tile = (lv, label, val, unit) => `<div class="tile ${lv}"><span>${label}</span><b>${val}<small>${unit}</small></b></div>`;
+    const hv = h => h < 0.05 ? '0' : h.toFixed(1).replace('.0', '');
+    document.getElementById('tiles').innerHTML =
+      tile(nOff >= 0.25 ? (nOff > 3 ? 'bad' : 'warn') : 'ok', '夜间关期', hv(nOff), '小时') +
+      tile(dOff >= 0.25 ? (dOff > 1.5 ? 'bad' : 'warn') : 'ok', '白天关期', hv(dOff), '小时') +
+      tile(anyDys ? (dys > 1.5 ? 'bad' : 'warn') : 'ok', '异动风险', hv(dys), '小时') +
+      tile('', '每日 LEDD', Math.round(ST.ledd), `mg · 激动剂 ${ST.ledd ? Math.round(ST.ledA / ST.ledd * 100) : 0}%`);
+  }
+
+  // ---------- dose desk ----------
+  const stagesEl = document.getElementById('stages'), chipsEl = document.getElementById('chips'), deskEl = document.getElementById('desk');
+  for (const [k, st] of Object.entries(STAGES)) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = st.label; b.dataset.k = k;
+    b.addEventListener('click', () => { S.stage = k; refresh(); });
+    stagesEl.appendChild(b);
+  }
+  for (const [k, D] of Object.entries(DRUGS)) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.k = k; b.textContent = D.brand;
+    b.setAttribute('aria-label', D.brand + '（' + D.name + '）');
+    b.addEventListener('click', () => {
+      if (plan[k]) delete plan[k];
+      else plan[k] = D.patch ? [D.step * 2 > D.max ? D.step : 4] : [D.step, 0, 0].map((v, i) => i === 0 ? (D.tab ? D.tab * D.tabStep : D.step) : 0);
+      renderDesk(); refresh();
+    });
+    chipsEl.appendChild(b);
+  }
+  function stepper(k, i) {
+    const D = DRUGS[k], v = plan[k][i], t = amtText(k, v);
+    const wrap = document.createElement('div'); wrap.className = 'step' + (v ? '' : ' zero');
+    wrap.innerHTML = `<button type="button" aria-label="减少">−</button><output>${v ? `<b>${t.main}</b><small>${t.small}</small>` : '<b>不服</b><small>&nbsp;</small>'}</output><button type="button" aria-label="增加">+</button>`;
+    const [minus, plus] = wrap.querySelectorAll('button');
+    minus.disabled = v <= 0; plus.disabled = v >= D.max;
+    minus.addEventListener('click', () => { plan[k][i] = Math.max(0, +(plan[k][i] - D.step).toFixed(3)); renderDesk(); refresh(); });
+    plus.addEventListener('click', () => { plan[k][i] = Math.min(D.max, +(plan[k][i] + D.step).toFixed(3)); renderDesk(); refresh(); });
+    return wrap;
+  }
+  function renderDesk() {
+    for (const b of chipsEl.children) b.setAttribute('aria-pressed', String(!!plan[b.dataset.k]));
+    deskEl.innerHTML = '';
+    const keys = Object.keys(DRUGS).filter(k => plan[k]);
+    if (!keys.length) { deskEl.innerHTML = '<p class="fine">还没有选药。点上面的药名加入。</p>'; return; }
+    for (const k of keys) {
+      const D = DRUGS[k];
+      const box = document.createElement('div'); box.className = 'drug';
+      box.innerHTML = `<div class="drug-h"><span class="sw ${D.patch ? 'P' : D.cls}"></span><b>${D.brand}</b><span>${D.name}${D.tab ? ` · 1 片 ${num(D.tab)} mg` : ''}</span></div>`;
+      const slots = document.createElement('div'); slots.className = 'slots' + (D.patch ? ' one' : '');
+      if (D.patch) { const s = document.createElement('div'); s.className = 'slot'; s.innerHTML = '<span>每天 07:00 换贴，持续 24 小时</span>'; s.appendChild(stepper(k, 0)); slots.appendChild(s); }
+      else SLOTS.forEach((t, i) => { const s = document.createElement('div'); s.className = 'slot'; s.innerHTML = `<span>${fmtT(t)}</span>`; s.appendChild(stepper(k, i)); slots.appendChild(s); });
+      box.appendChild(slots); deskEl.appendChild(box);
+    }
+  }
+  document.getElementById('useRec').addEventListener('click', () => { plan = clone(REC[S.stage]); renderDesk(); refresh(); announce('已换成' + STAGES[S.stage].label + '推荐方案'); });
+  document.getElementById('clearAll').addEventListener('click', () => { for (const k of Object.keys(plan)) plan[k] = plan[k].map(() => 0); renderDesk(); refresh(); });
+
+  const ADV = [
+    { k: 'off', label: '关期阈值', sub: '低于它示意“关期”', step: 1, min: 2, max: 60, f: v => String(v) },
+    { k: 'dys', label: '异动阈值', sub: '高于它示意可能异动', step: 1, min: 10, max: 150, f: v => String(v) },
+    { k: 'bed', label: '入睡时间', sub: '夜间统计从这里开始', step: 0.5, min: 20, max: 23.5, f: fmtT },
+    { k: 'wake', label: '起床时间', sub: '夜间统计到这里结束', step: 0.5, min: 4.5, max: 9, f: fmtT },
+  ];
+  const advEl = document.getElementById('adv');
+  function renderAdv() {
+    advEl.innerHTML = '';
+    for (const p of ADV) {
+      const row = document.createElement('div'); row.className = 'prm';
+      row.innerHTML = `<div>${p.label}<small>${p.sub}</small></div><div class="step"><button type="button" aria-label="${p.label}减少">−</button><output><b>${p.f(S[p.k])}</b></output><button type="button" aria-label="${p.label}增加">+</button></div>`;
+      const [m, pl] = row.querySelectorAll('button');
+      const set = d => { let v = S[p.k] + d * p.step; S[p.k] = clamp(v, p.min, p.max); if (S.dys <= S.off) S.dys = S.off + 1; renderAdv(); refresh(); };
+      m.addEventListener('click', () => set(-1)); pl.addEventListener('click', () => set(1));
+      advEl.appendChild(row);
+    }
+  }
+
+  // ---------- schedule ----------
+  function scheduleLines() {
+    const lines = [];
+    for (const [i, t] of SLOTS.entries()) {
+      const items = Object.keys(DRUGS).filter(k => plan[k] && !DRUGS[k].patch && plan[k][i] > 0).map(k => ({ k, amt: plan[k][i] }));
+      const patch = i === 0 ? Object.keys(DRUGS).filter(k => plan[k] && DRUGS[k].patch && plan[k][0] > 0).map(k => ({ k, amt: plan[k][0] })) : [];
+      lines.push({ t, items: [...patch, ...items] });
+    }
+    return lines;
+  }
+  function renderSchedule() {
+    const el = document.getElementById('sched');
+    el.innerHTML = scheduleLines().map(l => `<li><time>${fmtT(l.t)}</time><div class="what">${l.items.length ? l.items.map(it => {
+      const D = DRUGS[it.k], a = amtText(it.k, it.amt);
+      return `<div class="item"><b>${D.brand} ${D.patch ? '换贴 ' + a.main : a.main}</b><span>${D.name}${D.patch ? ' · 贴 24 小时' : a.small ? ' · ' + a.small : ''}</span></div>`;
+    }).join('') : '<span class="none">不服药</span>'}</div></li>`).join('');
+    const lev = doses.filter(d => DRUGS[d.drug].cls === 'L').reduce((a, d) => a + d.amt, 0);
+    document.getElementById('totals').innerHTML = `<span>每日 LEDD <b>${Math.round(ST.ledd)}</b> mg</span><span>左旋多巴 <b>${num(lev)}</b> mg</span><span>激动剂占 <b>${ST.ledd ? Math.round(ST.ledA / ST.ledd * 100) : 0}%</b></span><span>病程 <b>${STAGES[S.stage].label}</b></span>`;
+  }
+  document.getElementById('copy').addEventListener('click', async () => {
+    const txt = scheduleLines().map(l => fmtT(l.t) + '  ' + (l.items.length ? l.items.map(it => { const D = DRUGS[it.k], a = amtText(it.k, it.amt); return D.brand + ' ' + (D.patch ? '换贴 ' : '') + a.main + (a.small && !D.patch ? `（${a.small}）` : ''); }).join(' + ') : '不服药')).join('\n')
+      + `\n每日 LEDD ${Math.round(ST.ledd)} mg（模型示意，用药请遵医嘱）`;
+    const btn = document.getElementById('copy');
+    try { await navigator.clipboard.writeText(txt); btn.textContent = '已复制'; }
+    catch (e) { const r = document.createRange(); r.selectNodeContents(document.getElementById('sched')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = '已选中，请长按复制'; }
+    setTimeout(() => { btn.textContent = '复制方案文字'; }, 2000);
+  });
+
+  // ---------- reading ----------
+  const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+  const DAILY_MAX = { prami: ['普拉克索', 4.5, 'mg'], ropi: ['罗匹尼罗', 24, 'mg'], piri: ['吡贝地尔', 250, 'mg'], roti: ['罗替高汀', 16, 'mg/24h'] };
+  function renderReading() {
+    const vEl = document.getElementById('verdict'), fEl = document.getElementById('finds'), aEl = document.getElementById('advice');
+    if (!doses.length) { vEl.textContent = '还没有用药，曲线只剩残余的内源多巴胺。'; fEl.innerHTML = ''; aEl.innerHTML = ''; return; }
+    const F = [], G = [];
+    const add = (lv, title, detail) => F.push({ lv, title, detail });
+    const adv = (key, title, body, prio) => { if (!G.some(g => g.key === key)) G.push({ key, title, body, prio }); };
+    const wearH = hrs(ST.wearing), dysH = hrs(ST.dayDys), nOff = hrs(ST.nightOff);
+    if (wearH >= 0.25) {
+      add(wearH > 1.5 ? 'bad' : 'warn', `白天剂末关期约 ${fmtH(wearH)}`, `出现在 ${fmtW(ST.wearing)}，都在下一次服药之前：上一剂的作用消退了，下一剂还没起效。`);
+      adv('wear', '处理剂末现象', '本页服药时间固定，可以先在低谷前的那一次加量，或把短效的美多芭换成控释的息宁、加长效激动剂把底部垫高。临床上常用的办法还有缩短服药间隔、加用恩他卡朋（与每次复方左旋多巴同服）或 MAO-B 抑制剂。左旋多巴在餐前 1 小时或餐后 1.5 小时服用，避免高蛋白饮食影响吸收。', wearH > 1.5 ? 0 : 1);
+    } else if (ST.onAt !== null) add('ok', '白天没有明显的剂末关期', '起床起效后，到入睡前曲线都在关期线以上。');
+    if (dysH >= 0.1) {
+      add(dysH > 1.5 ? 'bad' : 'warn', `白天有 ${fmtH(dysH)}高于异动线`, `出现在 ${fmtW(ST.dayDys)}，多在服药后 1–2 小时的高峰，示意“峰剂异动”的风险。`);
+      adv('dys', '削低峰值，减少异动', '减少高峰前那一次的左旋多巴剂量；如果已经用激动剂，可以考虑提高激动剂占比、减少左旋多巴；金刚烷胺对异动有效。', dysH > 1.5 ? 0 : 1);
+    } else add('ok', '白天没有超过异动线', '峰值都在异动阈值以下。');
+    if (ST.ratio > 3 && doses.some(d => DRUGS[d.drug].cls === 'L')) {
+      add('warn', `白天峰谷相差约 ${ST.ratio.toFixed(1)} 倍`, '曲线是尖峰加深谷，作用以短效药为主，波动大。');
+      adv('cds', '让曲线更平稳', '目标是“持续多巴胺能刺激”：用控释片、缓释激动剂或贴片把底部垫高，少用大剂量短效药。', 2);
+    }
+    if (ST.onAt === null) { add('bad', '起床后 4 小时内都没有回到关期线以上', '早上的剂量可能不够。'); adv('morning', '早上尽快起效', '07:00 那一次可以加一点起效快的美多芭；同时让睡前的长效药托住清晨。', 0); }
+    else if (ST.onAt > 0.4) { add('warn', `起床后约 ${fmtH(ST.onAt)}才回到关期线以上`, '示意“清晨关期”：起床、穿衣、洗漱最困难的一段。'); adv('morning', '早上尽快起效', '07:00 那一次可以加一点起效快的美多芭（醒来空腹服用起效更快）；同时让睡前的长效药托住清晨。', 1); }
+    if (ST.bedDiff < 0) add('info', `入睡时比全天平均低 ${Math.round(-ST.bedDiff * 100)}%`, `睡眠的 ${fmtH(ST.dur)}中有 ${fmtH(ST.below)}低于平均线，最低点在 ${fmtT(ST.minT)}。夜里不服药，这一段下降是预期的。`);
+    if (nOff >= 0.25) {
+      add(nOff > 3 ? 'bad' : 'warn', `夜间约 ${fmtH(nOff)}低于关期线`, `从 ${fmtW(ST.nightOff)}。示意夜间翻身困难、起夜不便，以及清晨的运动迟缓和肌肉痉挛。`);
+      adv('night', '给夜间托底', '22:00 那一次用控释的息宁，或加大贴片、加长效激动剂（普拉克索缓释片、罗匹尼罗缓释片）。指南的思路就是睡前加用长效多巴胺能药物。', nOff > 3 ? 0 : 1);
+      adv('fall', '夜间防跌倒', '夜里起床先在床边坐一会儿再站起；床边留夜灯，通往卫生间的路上不放杂物。', 3);
+    } else add('ok', '整夜保持在关期线以上', `夜间最低 ${fmtN(ST.min)}（${fmtT(ST.minT)}），仍高于关期阈值 ${S.off}。`);
+    if (ST.bed > S.dys * 0.85 || ST.bedDiff > 0.3) {
+      add('warn', `入睡时刺激偏高（比平均高 ${Math.round(Math.max(0, ST.bedDiff) * 100)}%）`, '晚上的药物作用还在高位。');
+      adv('evening', '留意晚间偏高的副作用', '睡前多巴胺能偏高可能影响入睡，加重多梦或幻觉，老年人更明显。22:00 的剂量请和医生讨论。', 2);
+    }
+    const margin = (ST.gmin - S.off) / S.off;
+    if (wearH < 0.25 && nOff < 0.25 && dysH < 0.1 && (ST.onAt ?? 9) <= 0.4) {
+      if (margin < 0.15) { add('info', `余量很小：最低点只比关期线高 ${Math.max(0, Math.round(margin * 100))}%`, '模型里刚好够用；漏服、吃饭影响吸收或病情进展时，容易掉进关期。'); adv('margin', '留一点余量', '实际用药一般要比“刚好够”多留余量。可以把高级设置里的关期阈值调高 20%（例如 14 → 17）看看方案还够不够，再和医生讨论。', 2); }
+      else if (margin > 0.3) { add('info', `有富余：最低点比关期线高 ${Math.round(margin * 100)}%`, '如果实际症状也很稳定，可能存在减量空间。'); adv('reduce', '可以讨论减量', '整天都远高于关期线时，可以和医生讨论是否减少总剂量，尤其是激动剂，以减少副作用。', 2); }
+    }
+    for (const [k, [name, max, unit]] of Object.entries(DAILY_MAX)) if (ST.daily[k] > max + 1e-9) { add('bad', `${name}日剂量 ${num(ST.daily[k])} ${unit}，超过说明书上限 ${max} ${unit}`, '请核对剂量。'); adv('dose', '核对剂量', '超过说明书最大日剂量的方案需要由医生确认。', 0); }
+    if (plan.roti && plan.roti[0] > 8) add('info', `罗替高汀 ${num(plan.roti[0])} mg 需要贴多片`, '8 mg 以上通常只用于晚期患者，激动剂副作用也随剂量增加。');
+    if (ST.ledA > 0) adv('agonist', '使用激动剂时要留意', '激动剂可能引起白天嗜睡、突然入睡（不要在困倦时开车）、下肢水肿、幻觉，以及冲动控制障碍（如病理性赌博、购物、暴食）。出现这些情况要告诉医生，家属也要帮忙留意。贴片每天换一个部位贴。', 8);
+    adv('safe', '所有调整都要经过医生', '不要自行停药或突然大幅减量，特别是左旋多巴和激动剂：突然停用可能出现严重的撤药反应，甚至高热、肌肉强直等危及生命的情况。建议记录几天“开-关日记”，和这张图一起带给医生。', 9);
+
+    const bits = [];
+    if (wearH >= 0.25) bits.push(`白天有 ${fmtH(wearH)}剂末关期`);
+    if (dysH >= 0.1) bits.push(`白天有 ${fmtH(dysH)}可能异动`);
+    if (ST.onAt !== null && ST.onAt > 0.4) bits.push(`起床后 ${fmtH(ST.onAt)}才起效`);
+    if (nOff >= 0.25) bits.push(`入睡后逐渐下降，夜里约 ${fmtH(nOff)}处于关期，${fmtT(ST.minT)} 前后最低`);
+    vEl.textContent = bits.length ? '这个方案：' + bits.join('；') + '。' : '这个方案在模型里比较平稳：白天在治疗窗内，夜间也没有掉到关期线以下。';
+    const LB = { ok: '良好', warn: '注意', bad: '问题', info: '说明' }, order = { bad: 0, warn: 1, info: 2, ok: 3 };
+    F.sort((a, b) => order[a.lv] - order[b.lv]); G.sort((a, b) => a.prio - b.prio);
+    fEl.innerHTML = F.map(f => `<li class="find"><span class="pill ${f.lv}">${LB[f.lv]}</span><div><b>${esc(f.title)}</b><span>${esc(f.detail)}</span></div></li>`).join('');
+    aEl.innerHTML = G.map(g => `<li><div><b>${esc(g.title)}</b><span>${esc(g.body)}</span></div></li>`).join('');
+  }
+
+  // ---------- glue ----------
+  const statusEl = document.getElementById('status');
+  const announce = s => { statusEl.textContent = s; };
+  function refresh() {
+    updateKinetics(); buildDoses(); ST = stats();
+    for (const b of stagesEl.children) b.setAttribute('aria-pressed', String(b.dataset.k === S.stage));
+    document.getElementById('sub').textContent = `${STAGES[S.stage].label} · 固定 07:00 / 12:00 / 22:00 · LEDD ${Math.round(ST.ledd)} mg/日`;
+    draw(); renderVerdict(); renderSchedule(); renderReading(); save();
+  }
+  for (const b of document.querySelectorAll('.zoom button')) {
+    b.addEventListener('click', () => {
+      const frac = (scroller.scrollLeft + scroller.clientWidth / 2) / (scroller.scrollWidth || 1);
+      S.zoom = +b.dataset.z;
+      for (const o of document.querySelectorAll('.zoom button')) o.setAttribute('aria-pressed', String(o === b));
+      layout(); draw(); save();
+      scroller.scrollLeft = frac * scroller.scrollWidth - scroller.clientWidth / 2;
+    });
+  }
+  for (const o of document.querySelectorAll('.zoom button')) o.setAttribute('aria-pressed', String(+o.dataset.z === S.zoom));
+  let lastW = 0;
+  new ResizeObserver(() => { if (scroller.clientWidth !== lastW) { lastW = scroller.clientWidth; layout(); if (ST) draw(); } }).observe(scroller);
+  layout(); renderDesk(); renderAdv(); refresh();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => draw());
+})();
+</script>
+</html>
