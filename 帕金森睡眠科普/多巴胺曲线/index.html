@@ -166,7 +166,7 @@
         <select id="addDrug" aria-label="点击图表或按添加时使用的药物"></select>
         <button class="btn" id="addBtn" type="button">添加一次</button>
       </div>
-      <p class="notes" style="margin:0"><span>左旋多巴剂量按<b>左旋多巴含量</b>填写：美多芭 1 片 = 左旋多巴 200 mg，半片 = 100 mg；息宁 1 片（250）= 250 mg。</span></p>
+      <p class="notes" style="margin:0"><span>左旋多巴剂量按<b>左旋多巴含量</b>填写：美多芭（多巴丝肼）1 片 = 左旋多巴 200 mg，半片 100 mg，1/4 片 50 mg；息宁（卡左双多巴控释片）1 片 = 左旋多巴 200 mg，半片 100 mg。</span></p>
     </section>
 
     <section class="card" aria-labelledby="h-prm">
@@ -203,8 +203,8 @@
   // ---------- drugs ----------
   // led: levodopa-equivalent factor per unit; tp: hours to peak; half: hours ('L' = levodopa effective half-life from stage)
   const DRUGS = {
-    ldopa:   { name: '左旋多巴 普通片', eg: '美多芭、息宁', unit: 'mg', led: 1, tp: 1, half: 'L', cls: 'L', amt: 100, step: 25, min: 25, max: 500 },
-    ldopaCR: { name: '左旋多巴 控释片', eg: '息宁控释片', unit: 'mg', led: 0.75, tp: 2.5, half: 'L', cls: 'L', amt: 200, step: 50, min: 50, max: 600 },
+    ldopa:   { name: '左旋多巴 普通片', eg: '美多芭', unit: 'mg', led: 1, tp: 1, half: 'L', cls: 'L', amt: 100, step: 25, min: 25, max: 500 },
+    ldopaCR: { name: '左旋多巴 控释片', eg: '息宁', unit: 'mg', led: 0.75, tp: 2.5, half: 'L', cls: 'L', amt: 200, step: 100, min: 100, max: 600 },
     prami:   { name: '普拉克索 普通片', eg: '森福罗', unit: 'mg', led: 100, tp: 2, half: 10, cls: 'A', amt: 0.25, step: 0.125, min: 0.125, max: 1.5 },
     pramiER: { name: '普拉克索 缓释片', eg: '森福罗缓释片', unit: 'mg', led: 100, tp: 6, half: 10, cls: 'A', amt: 0.75, step: 0.375, min: 0.375, max: 4.5 },
     ropiER:  { name: '罗匹尼罗 缓释片', eg: '力备', unit: 'mg', led: 20, tp: 6, half: 6, cls: 'A', amt: 4, step: 2, min: 2, max: 24 },
@@ -222,6 +222,7 @@
     { k: 'er', label: '+ 缓释激动剂', doses: () => [mk('ldopa', 7), mk('ldopa', 11), mk('ldopa', 15), mk('ldopa', 18), mk('pramiER', 8, 1.5)] },
     { k: 'night', label: '+ 睡前控释左旋多巴', doses: () => [mk('ldopa', 7), mk('ldopa', 11), mk('ldopa', 15), mk('ldopa', 18), mk('prami', 8, 0.5), mk('prami', 13, 0.5), mk('prami', 18, 0.5), mk('ldopaCR', 21.5, 200)] },
     { k: 'patch', label: '+ 罗替高汀贴片', doses: () => [mk('ldopa', 7), mk('ldopa', 11), mk('ldopa', 15), mk('ldopa', 18), mk('roti', 8, 6)] },
+    { k: 'opt', label: '息宁 + 罗替高汀（模型优化）', doses: () => [mk('roti', 8, 8), mk('ldopa', 8, 50), mk('ldopa', 15.5, 50), mk('ldopaCR', 21.5, 100)] },
   ];
   let uid = 1;
   function mk(drug, t, amt) { return { id: uid++, drug, t, amt: amt ?? DRUGS[drug].amt, sel: 0, act: 0 }; }
