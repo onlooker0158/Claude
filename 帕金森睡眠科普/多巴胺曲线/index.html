@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>多巴胺能曲线</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="帕金森病用药一天内的多巴胺能刺激曲线：左旋多巴 + 多巴胺受体激动剂，重点看入睡后的夜间低谷。">
+<!--
+  多巴胺能曲线
+  视觉与交互改编自 Caffeine Curve（MIT，https://github.com/marciob/caffeine-curve），
+  原设计 Charles Postiaux（@PostiauxCharles）。本页把模型换成帕金森病药物。
+  仅用于科普示意，不能用于调整用药。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one dot-matrix instrument on top (24 h, canvas), a control desk below in two columns that stack on phones. Deliberately dark-only, like the original. */
+  :root {
+    --bg: #0b0c0f;
+    --panel: #121318;
+    --field: #0b0c0f;
+    --line: #25272e;
+    --fg: #f2f3f5;
+    --fg-2: #d5d7dc;
+    --mute: #757985;
+    --mute-2: #3d4049;
+    --levo: #f2f3f5;
+    --agon: #2e82ff;
+    --endo: #6d7180;
+    --off: #e8a33d;
+    --dys: #e0607a;
+    --font-mono: "Geist Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --font-cn: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color-scheme: dark;
+  }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-cn);
+    font-size: 14px;
+    line-height: 1.6;
+    padding-block: 20px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 20px; }
+  .stage { position: relative; width: 100%; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); }
+  canvas#c { display: block; width: 100%; outline: none; touch-action: none; -webkit-user-select: none; user-select: none; }
+  canvas#c:focus-visible { box-shadow: 0 0 0 1px var(--mute); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .desk { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 820px) { .desk { grid-template-columns: minmax(0, 1fr); } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+  h2 { margin: 0; font: 500 11px/1.2 var(--font-mono); letter-spacing: 0.12em; color: var(--mute); text-transform: uppercase; }
+  h2 span { font-family: var(--font-cn); letter-spacing: 0.04em; color: var(--fg-2); font-size: 13px; margin-left: 6px; text-transform: none; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font: 13px/1 var(--font-cn); color: var(--fg-2); background: transparent;
+    border: 1px solid var(--line); border-radius: 2px; padding: 8px 10px; cursor: pointer;
+  }
+  .chip:hover { border-color: var(--mute); color: var(--fg); }
+  .chip[aria-pressed="true"] { border-color: var(--agon); color: var(--fg); background: color-mix(in srgb, var(--agon) 14%, transparent); }
+  .chip:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 1px solid var(--agon); outline-offset: 1px; }
+
+  .doses { display: grid; gap: 6px; }
+  .dose {
+    display: grid; grid-template-columns: 10px minmax(0, 1fr) 118px 76px 32px; gap: 8px; align-items: center;
+    padding: 6px 8px; border: 1px solid transparent; border-radius: 2px;
+  }
+  .dose.sel { border-color: var(--mute-2); background: #171920; }
+  .sw { width: 10px; height: 10px; border-radius: 50%; }
+  .sw.L { background: var(--levo); }
+  .sw.A { background: var(--agon); }
+  .sw.P { background: var(--agon); border-radius: 1px; }
+  select, input[type="number"], input.tm {
+    height: 32px; box-sizing: border-box; min-width: 0; width: 100%;
+    background: var(--field); border: 1px solid var(--line); color: var(--fg); border-radius: 2px;
+    font: 13px var(--font-cn); font-variant-numeric: tabular-nums; padding: 0 6px;
+  }
+  input[type="number"], input.tm { font-family: var(--font-mono); }
+  .amt { display: flex; align-items: center; gap: 4px; min-width: 0; }
+  .amt input { text-align: right; }
+  .amt .u { font: 11px var(--font-mono); color: var(--mute); width: 46px; flex: 0 0 auto; }
+  .x { width: 32px; height: 32px; background: transparent; border: 1px solid var(--line); color: var(--mute); border-radius: 2px; cursor: pointer; font: 16px/1 var(--font-mono); }
+  .x:hover { color: var(--fg); border-color: var(--mute); }
+  @media (max-width: 520px) {
+    .dose { grid-template-columns: 10px minmax(0, 1.3fr) minmax(0, 1fr) 32px; grid-template-areas: "sw drug drug x" ". amt time time"; row-gap: 6px; }
+    .dose .sw { grid-area: sw; } .dose select { grid-area: drug; } .dose .amt { grid-area: amt; }
+    .dose input.tm { grid-area: time; } .dose .x { grid-area: x; }
+  }
+  .row-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .row-add select { width: auto; flex: 1 1 180px; }
+  .btn {
+    height: 32px; padding: 0 12px; background: transparent; border: 1px solid var(--line); color: var(--fg-2);
+    font: 13px var(--font-cn); border-radius: 2px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--mute); color: var(--fg); }
+
+  .params { display: grid; gap: 10px; }
+  .prm { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; align-items: center; }
+  .prm label { font-size: 13px; color: var(--fg-2); }
+  .prm small { display: block; font-size: 11px; color: var(--mute); line-height: 1.4; }
+  .tick { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--fg-2); }
+  .tick input { accent-color: var(--agon); width: 16px; height: 16px; }
+  .k-off { color: var(--off); } .k-dys { color: var(--dys); }
+
+  .notes { font-size: 13px; color: var(--fg-2); display: grid; gap: 10px; max-width: 72ch; }
+  .notes p { margin: 0; }
+  .notes b { color: var(--fg); font-weight: 500; }
+  .notes code { font: 12px var(--font-mono); color: var(--fg); }
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 12px; width: 100%; min-width: 520px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--mute); font-weight: 500; }
+  td.n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .warn { border-left: 2px solid var(--off); padding-left: 10px; color: var(--fg-2); }
+  a { color: var(--agon); }
+</style>
+
+<div class="wrap">
+  <div class="stage" id="stage">
+    <canvas id="c" tabindex="0" aria-label="一天内多巴胺能刺激曲线。拖动图下方的圆点移动服药时间，点击图表空白处添加一次服药，再次点击已选中的圆点删除它。"></canvas>
+  </div>
+  <p class="sr" id="status" aria-live="polite"></p>
+
+  <div class="desk">
+    <section class="card" aria-labelledby="h-plan">
+      <h2 id="h-plan">Regimen<span>用药方案</span></h2>
+      <div class="chips" id="presets" role="group" aria-label="示例方案"></div>
+      <div class="doses" id="doses"></div>
+      <div class="row-add">
+        <select id="addDrug" aria-label="点击图表或按添加时使用的药物"></select>
+        <button class="btn" id="addBtn" type="button">添加一次</button>
+      </div>
+      <p class="notes" style="margin:0"><span>左旋多巴剂量按<b>左旋多巴含量</b>填写：美多芭 1 片 = 左旋多巴 200 mg，半片 = 100 mg；息宁 1 片（250）= 250 mg。</span></p>
+    </section>
+
+    <section class="card" aria-labelledby="h-prm">
+      <h2 id="h-prm">Patient<span>病程与阈值</span></h2>
+      <div class="chips" id="stages" role="group" aria-label="病程"></div>
+      <div class="params" id="params"></div>
+      <label class="tick"><input type="checkbox" id="ghost"> 显示“去掉激动剂”的对比曲线</label>
+      <button class="btn" id="resetAll" type="button" style="justify-self:start">恢复默认</button>
+    </section>
+  </div>
+
+  <section class="card notes" aria-labelledby="h-how">
+    <h2 id="h-how">How it works<span>这条曲线怎么算出来的</span></h2>
+    <p><b>纵轴是“多巴胺能刺激”，不是大脑里实测的多巴胺浓度。</b>激动剂本身不会提高多巴胺，它直接刺激多巴胺受体。为了把两类药放在一起比较，每种药都按<b>左旋多巴等效剂量（LEDD）</b>折算：一天内曲线下的面积等于这次服药的 LEDD。所以同样的 LEDD，半衰期短的药画出来是又高又窄的尖峰，半衰期长的药是又低又宽的平台。</p>
+    <p>每次服药用一室吸收-消除模型（Bateman 函数）计算，多次服药叠加，并按每天重复同一方案、已服药数天的稳态来算，所以长效药在夜里还会留下底子。贴片按 24 小时匀速释放计算。底部灰色是<b>残余的内源多巴胺</b>，白天略高、凌晨最低，这一层只是示意，随病程进展变薄。</p>
+    <p><b>病程</b>改变两件事：残余内源多巴胺的厚度，以及左旋多巴的“有效半衰期”。早期脑内还能储存和缓慢释放多巴胺，左旋多巴的作用可以持续较久（长时程反应）；晚期储存能力下降，作用时间接近血浆半衰期（约 1.5 小时），于是出现剂末现象和夜间、清晨的“关期”。</p>
+    <p><b>两条阈值线是可调的假设值</b>：低于橙线示意进入“关期”（动作变慢、僵硬，夜里翻身困难、清晨起床困难）；高于红线示意可能出现异动。实际阈值每个人都不同，也会随病程变化。</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>药物（国内常见商品名）</th><th>LEDD 换算</th><th>达峰（模型）</th><th>半衰期（模型）</th></tr></thead>
+        <tbody id="drugTable"></tbody>
+      </table>
+    </div>
+    <p>换算系数采用 Tomlinson 等 2010 年系统综述（国内文献与临床普遍沿用）：普拉克索 ×100、罗匹尼罗 ×20、罗替高汀 ×30、吡贝地尔 ×1、左旋多巴控释片 ×0.75。达峰与半衰期为说明书与文献中的典型值，吡贝地尔缓释片的达峰时间为近似值。</p>
+    <p class="warn">本图只用于理解“为什么夜里多巴胺能会掉下去”以及长效药、睡前用药的思路，<b>不能用来自行调整药物</b>。剂量、时间和换药请和神经内科医生商量。</p>
+    <p style="color:var(--mute);font-size:12px">视觉与交互改编自 <a href="https://github.com/marciob/caffeine-curve" target="_blank" rel="noopener">Caffeine Curve</a>（MIT），原设计 Charles Postiaux。</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- drugs ----------
+  // led: levodopa-equivalent factor per unit; tp: hours to peak; half: hours ('L' = levodopa effective half-life from stage)
+  const DRUGS = {
+    ldopa:   { name: '左旋多巴 普通片', eg: '美多芭、息宁', unit: 'mg', led: 1, tp: 1, half: 'L', cls: 'L', amt: 100, step: 25, min: 25, max: 500 },
+    ldopaCR: { name: '左旋多巴 控释片', eg: '息宁控释片', unit: 'mg', led: 0.75, tp: 2.5, half: 'L', cls: 'L', amt: 200, step: 50, min: 50, max: 600 },
+    prami:   { name: '普拉克索 普通片', eg: '森福罗', unit: 'mg', led: 100, tp: 2, half: 10, cls: 'A', amt: 0.25, step: 0.125, min: 0.125, max: 1.5 },
+    pramiER: { name: '普拉克索 缓释片', eg: '森福罗缓释片', unit: 'mg', led: 100, tp: 6, half: 10, cls: 'A', amt: 0.75, step: 0.375, min: 0.375, max: 4.5 },
+    ropiER:  { name: '罗匹尼罗 缓释片', eg: '力备', unit: 'mg', led: 20, tp: 6, half: 6, cls: 'A', amt: 4, step: 2, min: 2, max: 24 },
+    piri:    { name: '吡贝地尔 缓释片', eg: '泰舒达', unit: 'mg', led: 1, tp: 3, half: 7, cls: 'A', amt: 50, step: 50, min: 50, max: 250 },
+    roti:    { name: '罗替高汀 贴片', eg: '优普洛', unit: 'mg/24h', led: 30, patch: true, half: 5.5, cls: 'A', amt: 4, step: 2, min: 2, max: 16 },
+  };
+  const STAGES = {
+    early: { label: '早期', lHalf: 3.5, endo: 4, sub: '储存能力尚好' },
+    mid:   { label: '中期', lHalf: 2.2, endo: 2, sub: '开始剂末现象' },
+    late:  { label: '晚期', lHalf: 1.5, endo: 0.5, sub: '明显波动' },
+  };
+  const PRESETS = [
+    { k: 'levo', label: '仅左旋多巴', doses: () => [mk('ldopa', 7), mk('ldopa', 11), mk('ldopa', 15), mk('ldopa', 18)] },
+    { k: 'prami', label: '+ 普拉克索普通片', doses: () => [mk('ldopa', 7), mk('ldopa', 11), mk('ldopa', 15), mk('ldopa', 18), mk('prami', 8, 0.5), mk('prami', 13, 0.5), mk('prami', 18, 0.5)] },
+    { k: 'er', label: '+ 缓释激动剂', doses: () => [mk('ldopa', 7), mk('ldopa', 11), mk('ldopa', 15), mk('ldopa', 18), mk('pramiER', 8, 1.5)] },
+    { k: 'night', label: '+ 睡前控释左旋多巴', doses: () => [mk('ldopa', 7), mk('ldopa', 11), mk('ldopa', 15), mk('ldopa', 18), mk('prami', 8, 0.5), mk('prami', 13, 0.5), mk('prami', 18, 0.5), mk('ldopaCR', 21.5, 200)] },
+    { k: 'patch', label: '+ 罗替高汀贴片', doses: () => [mk('ldopa', 7), mk('ldopa', 11), mk('ldopa', 15), mk('ldopa', 18), mk('roti', 8, 6)] },
+  ];
+  let uid = 1;
+  function mk(drug, t, amt) { return { id: uid++, drug, t, amt: amt ?? DRUGS[drug].amt, sel: 0, act: 0 }; }
+
+  const DEF = { stage: 'mid', bed: 22.5, wake: 6.5, off: 14, dys: 45, start: 6, ghost: true, addDrug: 'ldopa', preset: 'prami' };
+  const S = { ...DEF };
+  let doses = PRESETS[1].doses();
+
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const mix = (c1, c2, k) => [lerp(c1[0], c2[0], k), lerp(c1[1], c2[1], k), lerp(c1[2], c2[2], k)];
+  const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+  const mod24 = h => ((h % 24) + 24) % 24;
+  const fmtT = t => { let m = Math.round(mod24(t) * 60) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+  const parseT = s => { const m = /^(\d{1,2}):(\d{2})/.exec(s || ''); return m ? (+m[1]) + (+m[2]) / 60 : null; };
+  const inWindow = t => { t = mod24(t - S.start) + S.start; return t; };
+  const fmtN = v => v >= 10 ? String(Math.round(v)) : v.toFixed(1);
+  const fmtAmt = v => String(+v.toFixed(3));
+
+  // ---------- storage ----------
+  const KEY = 'dopa-curve-v1';
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ S, doses: doses.map(d => ({ drug: d.drug, t: d.t, amt: d.amt })) })); } catch (e) {}
+  }
+  (function load() {
+    try {
+      const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!d) return;
+      if (d.S) for (const k of Object.keys(DEF)) if (d.S[k] !== undefined && typeof d.S[k] === typeof DEF[k]) S[k] = d.S[k];
+      if (!STAGES[S.stage]) S.stage = DEF.stage;
+      if (!DRUGS[S.addDrug]) S.addDrug = DEF.addDrug;
+      if (Array.isArray(d.doses) && d.doses.length <= 16) {
+        const ok = d.doses.filter(x => DRUGS[x.drug] && Number.isFinite(x.t) && Number.isFinite(x.amt));
+        doses = ok.map(x => mk(x.drug, x.t, x.amt));
+      }
+    } catch (e) {}
+  })();
+  for (const d of doses) d.t = inWindow(d.t);
+
+  // ---------- model ----------
+  function solveKa(tmax, ke) {
+    let lo = ke * 1.0001, hi = 400;
+    for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; const t = Math.log(m / ke) / (m - ke); if (t > tmax) lo = m; else hi = m; }
+    return (lo + hi) / 2;
+  }
+  const kin = {}; // per drug: ke, ka
+  function updateKinetics() {
+    for (const [k, D] of Object.entries(DRUGS)) {
+      const half = D.half === 'L' ? STAGES[S.stage].lHalf : D.half;
+      const ke = Math.LN2 / half;
+      kin[k] = { ke, half, ka: D.patch ? 0 : solveKa(Math.min(D.tp, 0.95 / ke), ke) };
+    }
+  }
+  updateKinetics();
+  // unit-area response for one dose, dt hours after it (area = 1 h·unit, so area of a dose = its LEDD)
+  function unit(drug, dt) {
+    if (dt <= 0) return 0;
+    const { ke, ka } = kin[drug];
+    if (DRUGS[drug].patch) {
+      if (dt <= 24) return (1 - Math.exp(-ke * dt)) / 24;
+      return (1 - Math.exp(-ke * 24)) / 24 * Math.exp(-ke * (dt - 24));
+    }
+    return ka * ke / (ka - ke) * (Math.exp(-ke * dt) - Math.exp(-ka * dt));
+  }
+  const endoAt = t => STAGES[S.stage].endo * (1 + 0.25 * Math.cos(2 * Math.PI * (t - 14) / 24));
+  // parts at time t (steady state: same plan repeated for the previous days)
+  function parts(t) {
+    let Lv = 0, A = 0;
+    for (const d of doses) {
+      const D = DRUGS[d.drug], k = d.amt * D.led;
+      let v = 0; for (let day = 0; day < 7; day++) v += unit(d.drug, t - d.t + 24 * day);
+      if (D.cls === 'L') Lv += k * v; else A += k * v;
+    }
+    const E = endoAt(t);
+    return { E, A, L: Lv, total: E + A + Lv };
+  }
+  const asleep = t => mod24(t - S.bed) < mod24(S.wake - S.bed);
+  function stats() {
+    let sum = 0, n = 0, peak = 0, peakT = S.start;
+    for (let i = 0; i < 288; i++) { const t = S.start + i / 12; const v = parts(t).total; sum += v; n++; if (v > peak) { peak = v; peakT = t; } }
+    const mean = sum / n;
+    const dur = mod24(S.wake - S.bed) || 24;
+    let below = 0, off = 0, min = Infinity, minT = S.bed;
+    for (let i = 0; i < dur * 12; i++) {
+      const t = S.bed + i / 12, v = parts(t).total;
+      if (v < mean) below += 1 / 12; if (v < S.off) off += 1 / 12;
+      if (v < min) { min = v; minT = t; }
+    }
+    let ledd = 0, ledA = 0;
+    for (const d of doses) { const x = d.amt * DRUGS[d.drug].led; ledd += x; if (DRUGS[d.drug].cls === 'A') ledA += x; }
+    const bed = parts(S.bed).total;
+    return { mean, peak, peakT, below, off, min, minT, ledd, ledA, bed, dur };
+  }
+
+  // ---------- canvas ----------
+  const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage'), statusEl = document.getElementById('status');
+  const FONT = '"Geist Mono", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", monospace';
+  const BG = [11, 12, 15], BLUE = [46, 130, 255], WHITE = [255, 255, 255], ENDO = [130, 134, 150], OFF = [232, 163, 61], DYS = [224, 96, 122];
+  const CELL = 8, HOURS = 24;
+  let LY, dpr = 1, cw = 600, ch = 400;
+
+  function resize() {
+    cw = Math.max(280, stage.clientWidth);
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const LW = cw >= 700 ? 1080 : clamp(Math.round(cw * 1.64), 600, 1080);
+    const compact = LW < 1000;
+    const LH = compact ? 860 : 720;
+    ch = Math.round(cw * LH / LW);
+    const Lx = compact ? 24.5 : 100.5, Rx = compact ? LW - 96.5 : LW - 120.5;
+    const lineTop = compact ? 268 : 214;
+    const yAxis = LH - (compact ? 196 : 150) + 0.5;
+    const row0 = yAxis - 5;
+    const FIT = Math.floor((row0 - lineTop - 26) / CELL);
+    LY = { LW, LH, L: Lx, R: Rx, W: Rx - Lx, COLS: Math.floor((Rx - Lx - 4) / CELL) + 1, compact, lineTop, yAxis, row0, FIT, MAXROWS: FIT + 6,
+      yHandle: yAxis + 28, yHours: yAxis + 74, label1: lineTop - 34, label2: lineTop - 10, padX: compact ? 24 : 33, u: cw / LW };
+    canvas.style.height = ch + 'px';
+    canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+  }
+  new ResizeObserver(resize).observe(stage);
+  resize();
+
+  const t2x = t => LY.L + (t - S.start) / HOURS * LY.W;
+  // doses at almost the same time stack downward so both handles stay visible
+  const hy = d => { let n = 0; for (const o of doses) if (o !== d && Math.abs(o.t - d.t) < 0.3 && (o.t < d.t || (o.t === d.t && o.id < d.id))) n++; return LY.yHandle + n * 22; };
+  const x2t = x => S.start + (x - LY.L) / LY.W * HOURS;
+  const colX = k => LY.L + 4 + CELL * k;
+  const rowY = r => LY.row0 - CELL * r;
+
+  function text(str, x, y, size, color, align = 'left', weight = 400) {
+    ctx.font = `${weight} ${size}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = color; ctx.fillText(str, x, y);
+  }
+  const measure = (s, size, w = 400) => { ctx.font = `${w} ${size}px ${FONT}`; return ctx.measureText(s).width; };
+  function dot(x, y, r, style) { ctx.fillStyle = style; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+  function hline(y, color, dash) {
+    ctx.save(); ctx.setLineDash(dash); ctx.strokeStyle = color; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(LY.L, Math.round(y) + 0.5); ctx.lineTo(LY.R, Math.round(y) + 0.5); ctx.stroke(); ctx.restore();
+  }
+  function topIntensity(age) {
+    if (!isFinite(age)) return 0.3;
+    let bump; if (age < 0.6) bump = 0.72 + 0.28 * (age / 0.6); else { const z = (age - 0.6) / 0.5; bump = Math.exp(-0.5 * z * z); }
+    return 0.3 + 0.7 * bump;
+  }
+  const dotRadius = I => 1 + 2.3 * Math.pow(clamp((I - 0.13) / 0.6, 0, 1), 0.8);
+  function blur(src, rad, COLS, MR) {
+    const tmp = new Float32Array(COLS * MR), out = new Float32Array(COLS * MR), n = 2 * rad + 1;
+    for (let r = 0; r < MR; r++) for (let c = 0; c < COLS; c++) { let s = 0; for (let d = -rad; d <= rad; d++) { const cc = c + d; if (cc >= 0 && cc < COLS) s += src[cc * MR + r]; } tmp[c * MR + r] = s / n; }
+    for (let c = 0; c < COLS; c++) for (let r = 0; r < MR; r++) { let s = 0; for (let d = -rad; d <= rad; d++) { const rr = r + d; if (rr < 0) s += tmp[c * MR]; else if (rr < MR) s += tmp[c * MR + rr]; } out[c * MR + r] = s / n; }
+    return out;
+  }
+
+  let selected = null, hovered = null, drag = null, pending = null, pointer = null, maxAnim = 60, dirty = true, ST = stats();
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function changed() { dirty = true; }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const k = reduced ? 1 : 1 - Math.exp(-dt / 0.16);
+    if (dirty) { ST = stats(); dirty = false; syncRows(); }
+    const { LW, LH, L: Lx, R: Rx, W, COLS, yAxis, yHandle, lineTop, label1, label2, FIT, MAXROWS, compact, padX } = LY;
+    for (const d of doses) { d.sel += ((d === selected ? 1 : 0) - d.sel) * k; d.act += (((d === selected || d === hovered) ? 1 : 0) - d.act) * k; }
+    maxAnim += (Math.max(S.dys * 1.12, ST.peak * 1.06, 20) - maxAnim) * (reduced ? 1 : 1 - Math.exp(-dt / 0.12));
+    const rowsOf = v => v / maxAnim * FIT;
+    const yOf = v => LY.row0 + 4 - rowsOf(v) * CELL;
+    const hasA = doses.some(d => DRUGS[d.drug].cls === 'A');
+
+    ctx.setTransform(dpr * cw / LW, 0, 0, dpr * cw / LW, 0, 0);
+    ctx.fillStyle = rgba(BG, 1); ctx.fillRect(0, 0, LW, LH);
+
+    // sleep band
+    for (let kk = 0; kk < COLS; kk++) {
+      const x = colX(kk); if (!asleep(x2t(x))) continue;
+      ctx.fillStyle = 'rgba(46,130,255,0.045)'; ctx.fillRect(x - CELL / 2, lineTop, CELL, yAxis - lineTop);
+    }
+
+    // columns
+    const mask = new Float32Array(COLS * MAXROWS), cols = new Array(COLS);
+    const levoTimes = doses.filter(d => DRUGS[d.drug].cls === 'L').map(d => d.t);
+    for (let kk = 0; kk < COLS; kk++) {
+      const x = colX(kk), t = x2t(x), p = parts(t);
+      const bE = rowsOf(p.E), bA = rowsOf(p.E + p.A), rowsF = rowsOf(p.total);
+      const nFull = Math.floor(rowsF), frac = rowsF - nFull;
+      const count = Math.min(MAXROWS, nFull + (frac > 0.3 ? 1 : 0));
+      let lastL = -Infinity; for (const lt of levoTimes) { for (const c of [lt, lt - 24]) if (c <= t && c > lastL) lastL = c; }
+      cols[kk] = { x, t, p, bE, bA, rowsF, count, frac, topI: topIntensity(t - lastL), sleep: asleep(t) };
+      for (let r = 0; r < count; r++) mask[kk * MAXROWS + r] = 1;
+    }
+    const near = blur(mask, 2, COLS, MAXROWS), far = blur(mask, 12, COLS, MAXROWS);
+    for (let kk = 0; kk < COLS; kk++) {
+      for (let r = cols[kk].count; r < MAXROWS; r++) {
+        const a = 0.11 * near[kk * MAXROWS + r] + 0.09 * far[kk * MAXROWS + r];
+        if (a > 0.012) dot(cols[kk].x, rowY(r), 1.05, rgba(WHITE, a));
+      }
+    }
+    for (let kk = 0; kk < COLS; kk++) {
+      const c = cols[kk]; if (!c.count) continue;
+      const topRow = Math.max(1, c.count - 1);
+      for (let r = 0; r < c.count; r++) {
+        const mid = r + 0.5;
+        const layer = mid < c.bE ? 0 : mid < c.bA ? 1 : 2;
+        const I = 0.13 + (c.topI - 0.13) * Math.pow(r / topRow, 1.2);
+        let rad = dotRadius(I), col, a;
+        if (layer === 0) { col = ENDO; a = 0.38; rad = 1.5; }
+        else if (layer === 1) { col = BLUE; a = clamp(0.45 + 0.5 * (r / topRow), 0.45, 0.95); rad = Math.max(rad, 1.9); }
+        else { col = WHITE; a = I; }
+        if (r === c.count - 1 && c.frac > 0.3 && c.frac < 1) rad *= 0.5 + 0.5 * c.frac;
+        dot(c.x, rowY(r), rad, rgba(col, a));
+      }
+    }
+
+    // ghost: same plan without agonists
+    if (S.ghost && hasA) {
+      for (let kk = 0; kk < COLS; kk++) {
+        const c = cols[kk]; const v = c.p.E + c.p.L;
+        dot(c.x, yOf(v), 1.6, 'rgba(255,255,255,0.55)');
+      }
+    }
+
+    // dose guides
+    for (const d of doses) {
+      const cx = t2x(d.t), active = Math.max(d.sel, d.act), isA = DRUGS[d.drug].cls === 'A';
+      const base = isA ? BLUE : WHITE;
+      for (let y = yAxis + 3; y < yHandle - 11; y += CELL) dot(cx, y, 1, rgba(mix(base, BLUE, active), lerp(0.22, 0.75, active)));
+      if (d.sel > 0.01) for (let y = yAxis - 5; y >= lineTop; y -= CELL) dot(cx, y, 1.1, rgba(BLUE, 0.6 * d.sel));
+    }
+
+    // axis
+    ctx.strokeStyle = 'rgba(255,255,255,0.17)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(Lx, yAxis); ctx.lineTo(Rx, yAxis); ctx.stroke();
+    for (let h = 0; h <= HOURS; h += 3) {
+      const x = Math.round(t2x(S.start + h)) + 0.5;
+      ctx.beginPath(); ctx.moveTo(x, yAxis - 4); ctx.lineTo(x, yAxis + 4); ctx.stroke();
+      if (h % 6 === 0) text(String((S.start + h) % 24).padStart(2, '0'), x, LY.yHours, 20, 'rgba(255,255,255,0.28)', 'center');
+    }
+
+    // reference lines with right-edge labels (pushed apart when close)
+    const refs = [
+      { v: ST.mean, label: '平均 ' + fmtN(ST.mean), color: 'rgba(255,255,255,0.75)', line: 'rgba(255,255,255,0.45)', dash: [6, 4] },
+      { v: S.off, label: '关期 ' + S.off, color: rgba(OFF, 0.95), line: rgba(OFF, 0.55), dash: [2, 4] },
+      { v: S.dys, label: '异动 ' + S.dys, color: rgba(DYS, 0.95), line: rgba(DYS, 0.5), dash: [2, 4] },
+    ].map(r => ({ ...r, y: yOf(r.v) }));
+    for (const r of refs) hline(r.y, r.line, r.dash);
+    const sorted = [...refs].sort((a, b) => a.y - b.y);
+    for (let i = 1; i < sorted.length; i++) if (sorted[i].y - sorted[i - 1].y < 24) sorted[i].ly = (sorted[i - 1].ly ?? sorted[i - 1].y) + 24;
+    for (const r of sorted) text(r.label, Rx + 12, (r.ly ?? r.y) + 6, 18, r.color);
+
+    // sleep label
+    {
+      let x0 = null;
+      for (let kk = 0; kk < COLS; kk++) if (cols[kk].sleep && (kk === 0 || !cols[kk - 1].sleep)) { x0 = cols[kk].x; if (kk > 0) break; }
+      if (x0 != null) text('睡眠', x0 + 4, lineTop + 20, 16, 'rgba(120,160,255,0.65)');
+    }
+
+    // bed marker
+    const bedX = t2x(inWindow(S.bed));
+    const diff = (ST.bed - ST.mean) / ST.mean;
+    const bl1 = '入睡 ' + fmtT(S.bed);
+    const bl2 = (diff < 0 ? '低于平均 ' : '高于平均 ') + Math.round(Math.abs(diff) * 100) + '%';
+    const bw = Math.max(measure(bl1, 20), measure(bl2, 20));
+    const flip = bedX + 13 + bw > LW - 8;
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.moveTo(Math.round(bedX) + 0.5, lineTop); ctx.lineTo(Math.round(bedX) + 0.5, yAxis - 13); ctx.stroke();
+    text(bl1, bedX + (flip ? -13 : 13), label1, 20, '#f4f4f4', flip ? 'right' : 'left');
+    text(bl2, bedX + (flip ? -13 : 13), label2, 20, diff < 0 ? rgba(OFF, 1) : '#dbdbdb', flip ? 'right' : 'left');
+
+    // wake marker
+    const wakeX = t2x(inWindow(S.wake));
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.beginPath(); ctx.moveTo(Math.round(wakeX) + 0.5, lineTop); ctx.lineTo(Math.round(wakeX) + 0.5, yAxis - 13); ctx.stroke();
+    const wl = '起床 ' + fmtT(S.wake), ww = measure(wl, 18);
+    const wFlip = wakeX + 13 + ww > LW - 8;
+    if (Math.abs(wakeX - bedX) > bw + ww + 40) text(wl, wakeX + (wFlip ? -10 : 10), label2, 18, 'rgba(255,255,255,0.45)', wFlip ? 'right' : 'left');
+
+    // night minimum marker
+    if (doses.length || ST.min > 0) {
+      const mx = t2x(inWindow(ST.minT)), my = yOf(ST.min);
+      dot(mx, my, 4.5, rgba(OFF, 1));
+      const ml = '夜间最低 ' + fmtN(ST.min) + ' · ' + fmtT(ST.minT);
+      const mw = measure(ml, 18);
+      const mf = mx + 12 + mw > Rx;
+      text(ml, mx + (mf ? -12 : 12), my - 14, 18, rgba(OFF, 1), mf ? 'right' : 'left');
+    }
+
+    // handles
+    for (const d of doses) {
+      const cx = t2x(d.t), active = Math.max(d.sel, d.act), D = DRUGS[d.drug];
+      const col = rgba(mix(D.cls === 'A' ? BLUE : [217, 217, 217], D.cls === 'A' ? [140, 185, 255] : BLUE, active), 1);
+      const r = 8 + 2.5 * active, yh = hy(d);
+      if (D.patch) { ctx.fillStyle = col; ctx.fillRect(cx - r, yh - r, 2 * r, 2 * r); }
+      else dot(cx, yh, r, col);
+      if (active > 0.01) {
+        const s = fmtT(d.t) + ' ' + D.name.split(' ')[0] + ' ' + fmtAmt(d.amt) + (D.unit === 'mg' ? 'mg' : D.unit);
+        const sw = measure(s, 18), align = cx - sw / 2 < 8 ? 'left' : cx + sw / 2 > LW - 8 ? 'right' : 'center';
+        const tx = align === 'left' ? Math.max(8, cx - 10) : align === 'right' ? Math.min(LW - 8, cx + 10) : cx;
+        text(s, tx, yh + 30, 18, rgba(BLUE, active), align);
+      }
+    }
+
+    // pointer readout
+    if (pointer && !hovered && !drag && pointer.x >= Lx && pointer.x <= Rx && pointer.y >= lineTop - 60 && pointer.y <= yAxis) {
+      const t = x2t(pointer.x), p = parts(t), y = yOf(p.total);
+      const s1 = fmtT(t) + ' · ' + fmtN(p.total);
+      const s2 = '左旋多巴 ' + fmtN(p.L) + ' · 激动剂 ' + fmtN(p.A) + ' · 内源 ' + fmtN(p.E);
+      const w = Math.max(measure(s1, 20), measure(s2, 16));
+      const fl = pointer.x + 15 + w > LW - 8;
+      let tx = fl ? pointer.x - 15 - w : pointer.x + 15;
+      tx = clamp(tx, 8, LW - 8 - w);
+      dot(pointer.x, y, 4, '#e6e6e6');
+      ctx.fillStyle = 'rgba(11,12,15,0.86)'; ctx.fillRect(tx - 8, y - 58, w + 16, 56);
+      text(s1, tx, y - 34, 20, '#e6e6e6');
+      text(s2, tx, y - 12, 16, 'rgba(230,230,230,0.75)');
+    }
+
+    // header
+    text('多巴胺能刺激', padX, 48, 24, '#f3f3f3', 'left', 500);
+    text(`DOPAMINERGIC · ${STAGES[S.stage].label} · LEDD ${Math.round(ST.ledd)} MG/日 · 激动剂占 ${ST.ledd ? Math.round(ST.ledA / ST.ledd * 100) : 0}%`, padX, 80, 18, '#7a7e8a');
+    // legend
+    {
+      const items = [[WHITE, '左旋多巴'], [BLUE, '多巴胺受体激动剂'], [ENDO, '残余内源（示意）']];
+      if (S.ghost && hasA) items.push([null, '去掉激动剂']);
+      let x = padX, y = 118;
+      for (const [c, s] of items) {
+        const w = 22 + measure(s, 17) + 22;
+        if (x + w > LW - padX) { x = padX; y += 28; }
+        if (c) dot(x + 6, y - 6, 5, rgba(c, c === ENDO ? 0.8 : 1));
+        else for (let i = 0; i < 3; i++) dot(x + i * 6, y - 6, 1.6, 'rgba(255,255,255,0.7)');
+        text(s, x + 20, y, 17, '#b9bcc5'); x += w;
+      }
+    }
+    // footer
+    const f1 = `睡眠 ${ST.dur.toFixed(1).replace('.0', '')} 小时中：${ST.below.toFixed(1)} 小时低于平均线，${ST.off.toFixed(1)} 小时低于关期线`;
+    const f2 = ST.off > 0.05 ? '夜间翻身困难、清晨关期的风险时段' : '整夜保持在关期线以上';
+    if (compact) {
+      text(f1.split('：')[0] + '：', padX, LH - 64, 19, '#d8d8d8');
+      text(f1.split('：')[1], padX, LH - 38, 19, '#d8d8d8');
+      text(f2, padX, LH - 12, 17, ST.off > 0.05 ? rgba(OFF, 0.9) : 'rgba(120,200,140,0.9)');
+    } else {
+      text(f1, padX, LH - 44, 20, '#d8d8d8');
+      text(f2, padX, LH - 16, 18, ST.off > 0.05 ? rgba(OFF, 0.9) : 'rgba(120,200,140,0.9)');
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---------- canvas interaction ----------
+  function toLogical(e) { const r = canvas.getBoundingClientRect(), s = LY.LW / r.width; return { x: (e.clientX - r.left) * s, y: (e.clientY - r.top) * s }; }
+  function hitDose(p) {
+    const hitR = Math.max(16, 22 / LY.u);
+    let best = null, bd = Infinity;
+    for (const d of doses) { const dd = Math.hypot(p.x - t2x(d.t), p.y - hy(d)); if (dd <= hitR && dd < bd) { bd = dd; best = d; } }
+    return best;
+  }
+  const announce = s => { statusEl.textContent = s; };
+  canvas.addEventListener('pointerdown', e => {
+    if (e.button !== undefined && e.button !== 0) return;
+    canvas.setPointerCapture(e.pointerId); canvas.focus({ preventScroll: true });
+    const p = toLogical(e); pointer = p;
+    const d = hitDose(p);
+    if (d) { drag = { d, offset: x2t(p.x) - d.t, was: selected === d, moved: false, sx: p.x, sy: p.y }; selected = d; hovered = d; changed(); }
+    else if (p.x >= LY.L && p.x <= LY.R && p.y >= LY.lineTop - 60 && p.y <= LY.yHandle + 20) pending = { sx: p.x, sy: p.y, moved: false };
+  });
+  canvas.addEventListener('pointermove', e => {
+    const p = toLogical(e); pointer = p;
+    if (drag) {
+      if (Math.hypot(p.x - drag.sx, p.y - drag.sy) > 3) drag.moved = true;
+      drag.d.t = Math.round(clamp(x2t(p.x) - drag.offset, S.start, S.start + HOURS - 1 / 12) * 12) / 12;
+      changed(); return;
+    }
+    if (pending) { if (Math.hypot(p.x - pending.sx, p.y - pending.sy) > 6) pending.moved = true; return; }
+    hovered = hitDose(p);
+  });
+  canvas.addEventListener('pointerup', e => {
+    const p = toLogical(e); pointer = p;
+    if (drag) {
+      if (!drag.moved && drag.was) { removeDose(drag.d); }
+      else announce(DRUGS[drag.d.drug].name + ' 移到 ' + fmtT(drag.d.t));
+      drag = null; save(); renderRows();
+    } else if (pending) {
+      if (!pending.moved && doses.length < 16) {
+        const t = Math.round(clamp(x2t(p.x), S.start, S.start + HOURS - 1 / 12) * 4) / 4;
+        const d = mk(S.addDrug, t); doses.push(d); selected = d; markPreset(null); save(); renderRows(); changed();
+        announce('已添加 ' + DRUGS[d.drug].name + ' ' + fmtT(t));
+      }
+      pending = null;
+    }
+    if (e.pointerType === 'touch') { pointer = null; hovered = null; } else hovered = hitDose(p);
+  });
+  canvas.addEventListener('pointercancel', () => { drag = null; pending = null; pointer = null; hovered = null; });
+  canvas.addEventListener('pointerleave', () => { if (!drag) { pointer = null; hovered = null; } });
+  canvas.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { selected = null; syncRows(); }
+    else if ((e.key === 'Backspace' || e.key === 'Delete') && selected) { removeDose(selected); save(); renderRows(); }
+    else if (selected && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      selected.t = clamp(selected.t + (e.shiftKey ? 1 : 0.25) * (e.key === 'ArrowLeft' ? -1 : 1), S.start, S.start + HOURS - 1 / 12);
+      save(); renderRows(); changed(); e.preventDefault();
+    }
+  });
+  function removeDose(d) { doses = doses.filter(x => x !== d); if (selected === d) selected = null; hovered = null; markPreset(null); changed(); announce('已删除 ' + DRUGS[d.drug].name + ' ' + fmtT(d.t)); }
+
+  // ---------- panel ----------
+  const dosesEl = document.getElementById('doses');
+  const drugOptions = sel => {
+    const g = { L: '左旋多巴', A: '多巴胺受体激动剂' };
+    return Object.entries(g).map(([cls, lab]) => `<optgroup label="${lab}">` +
+      Object.entries(DRUGS).filter(([, D]) => D.cls === cls).map(([k, D]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${D.name}（${D.eg}）</option>`).join('') + '</optgroup>').join('');
+  };
+  function renderRows() {
+    doses.sort((a, b) => a.t - b.t);
+    dosesEl.innerHTML = '';
+    if (!doses.length) { dosesEl.innerHTML = '<p class="notes" style="margin:0;color:var(--mute)">还没有服药。点击上方图表的空白处，或用下面的“添加一次”。</p>'; }
+    for (const d of doses) {
+      const D = DRUGS[d.drug];
+      const row = document.createElement('div'); row.className = 'dose'; row.dataset.id = d.id;
+      row.innerHTML = `<span class="sw ${D.patch ? 'P' : D.cls}"></span>
+        <select id="drug-${d.id}" aria-label="药物">${drugOptions(d.drug)}</select>
+        <span class="amt"><input id="amt-${d.id}" type="number" inputmode="decimal" min="${D.min}" max="${D.max}" step="${D.step}" value="${fmtAmt(d.amt)}" aria-label="剂量"><span class="u">${D.unit.toUpperCase()}</span></span>
+        <input id="time-${d.id}" class="tm" type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" value="${fmtT(d.t)}" aria-label="时间（24 小时制）">
+        <button class="x" type="button" aria-label="删除这次服药">×</button>`;
+      const [selEl, amtEl, timeEl, xEl] = [row.querySelector('select'), row.querySelector('input[type=number]'), row.querySelector('input.tm'), row.querySelector('.x')];
+      selEl.addEventListener('change', () => { d.drug = selEl.value; d.amt = DRUGS[d.drug].amt; markPreset(null); save(); renderRows(); changed(); });
+      amtEl.addEventListener('change', () => { const v = parseFloat(amtEl.value); if (Number.isFinite(v)) d.amt = clamp(v, DRUGS[d.drug].min, DRUGS[d.drug].max); amtEl.value = fmtAmt(d.amt); markPreset(null); save(); changed(); });
+      timeEl.addEventListener('change', () => { const v = parseT(timeEl.value); if (v != null) d.t = inWindow(v); markPreset(null); save(); changed(); });
+      xEl.addEventListener('click', () => { removeDose(d); save(); renderRows(); });
+      row.addEventListener('focusin', () => { selected = d; syncRows(); });
+      dosesEl.appendChild(row);
+    }
+    syncRows();
+  }
+  function syncRows() {
+    for (const row of dosesEl.querySelectorAll('.dose')) {
+      const d = doses.find(x => String(x.id) === row.dataset.id);
+      row.classList.toggle('sel', !!d && d === selected);
+      const tEl = row.querySelector('input.tm');
+      if (d && tEl && document.activeElement !== tEl && tEl.value !== fmtT(d.t)) tEl.value = fmtT(d.t);
+    }
+  }
+
+  const presetsEl = document.getElementById('presets');
+  for (const p of PRESETS) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = p.label; b.dataset.k = p.k;
+    b.addEventListener('click', () => { doses = p.doses(); selected = null; markPreset(p.k); save(); renderRows(); changed(); announce('已切换到方案：' + p.label); });
+    presetsEl.appendChild(b);
+  }
+  function markPreset(k) { S.preset = k || ''; for (const b of presetsEl.children) b.setAttribute('aria-pressed', String(b.dataset.k === S.preset)); }
+
+  const stagesEl = document.getElementById('stages');
+  for (const [k, st] of Object.entries(STAGES)) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.k = k;
+    b.innerHTML = `${st.label} <span style="color:var(--mute);font-size:12px">${st.sub}</span>`;
+    b.addEventListener('click', () => { S.stage = k; updateKinetics(); syncStage(); save(); changed(); buildTable(); });
+    stagesEl.appendChild(b);
+  }
+  function syncStage() { for (const b of stagesEl.children) b.setAttribute('aria-pressed', String(b.dataset.k === S.stage)); }
+
+  const PARAMS = [
+    { k: 'bed', label: '入睡时间', sub: '竖线位置，从这里开始算夜间', time: true },
+    { k: 'wake', label: '起床时间', sub: '夜间统计到这里结束', time: true },
+    { k: 'off', label: '关期阈值', sub: '低于橙线示意“关期”', min: 2, max: 60, step: 1, cls: 'k-off' },
+    { k: 'dys', label: '异动阈值', sub: '高于红线示意可能异动', min: 10, max: 150, step: 1, cls: 'k-dys' },
+  ];
+  const paramsEl = document.getElementById('params'), pin = {};
+  for (const f of PARAMS) {
+    const row = document.createElement('div'); row.className = 'prm';
+    row.innerHTML = `<label for="p-${f.k}" class="${f.cls || ''}">${f.label}<small>${f.sub}</small></label>` +
+      (f.time ? `<input id="p-${f.k}" class="tm" type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM">` : `<input id="p-${f.k}" type="number" inputmode="numeric" min="${f.min}" max="${f.max}" step="${f.step}">`);
+    const inp = row.querySelector('input'); pin[f.k] = inp;
+    inp.addEventListener('change', () => {
+      if (f.time) { const v = parseT(inp.value); if (v != null) S[f.k] = v; }
+      else { const v = parseFloat(inp.value); if (Number.isFinite(v)) S[f.k] = clamp(Math.round(v), f.min, f.max); }
+      if (S.dys <= S.off) S.dys = S.off + 1;
+      syncParams(); save(); changed();
+    });
+    paramsEl.appendChild(row);
+  }
+  function syncParams() { for (const f of PARAMS) pin[f.k].value = f.time ? fmtT(S[f.k]) : String(S[f.k]); }
+
+  const ghostEl = document.getElementById('ghost');
+  ghostEl.addEventListener('change', () => { S.ghost = ghostEl.checked; save(); });
+
+  const addSel = document.getElementById('addDrug');
+  addSel.innerHTML = drugOptions(S.addDrug);
+  addSel.addEventListener('change', () => { S.addDrug = addSel.value; save(); });
+  document.getElementById('addBtn').addEventListener('click', () => {
+    if (doses.length >= 16) return;
+    const day = doses.map(d => d.t).sort((a, b) => a - b);
+    let t = day.length ? day[day.length - 1] + 3 : 8;
+    if (t >= S.start + 24) t = S.start + 12;
+    const d = mk(S.addDrug, t); doses.push(d); selected = d; markPreset(null); save(); renderRows(); changed();
+    announce('已添加 ' + DRUGS[d.drug].name + ' ' + fmtT(t));
+  });
+  document.getElementById('resetAll').addEventListener('click', () => {
+    Object.assign(S, DEF); doses = PRESETS[1].doses(); selected = null;
+    updateKinetics(); syncStage(); syncParams(); markPreset(S.preset); ghostEl.checked = S.ghost; addSel.value = S.addDrug;
+    save(); renderRows(); changed(); buildTable(); announce('已恢复默认方案');
+  });
+
+  function buildTable() {
+    document.getElementById('drugTable').innerHTML = Object.entries(DRUGS).map(([k, D]) => {
+      const half = kin[k].half;
+      return `<tr><td>${D.name}（${D.eg}）</td><td class="n">1 ${D.unit} = ${D.led} mg</td><td class="n">${D.patch ? '24 小时匀速释放' : D.tp + ' h'}</td><td class="n">${half} h${D.half === 'L' ? '（随病程）' : ''}</td></tr>`;
+    }).join('');
+  }
+
+  syncStage(); syncParams(); markPreset(S.preset); ghostEl.checked = S.ghost;
+  renderRows(); buildTable(); changed();
+})();
+</script>
+</html>
